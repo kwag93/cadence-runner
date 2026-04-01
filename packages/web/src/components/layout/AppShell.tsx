@@ -19,7 +19,7 @@ export function AppShell() {
   return (
     <div className="min-h-screen bg-surface">
       <Header title={headerTitles[activeTab]} />
-      <main className="pb-32" style={{ paddingTop: 'calc(6rem + var(--sat))' }}>
+      <main style={{ paddingTop: 'calc(6rem + var(--sat))', paddingBottom: 'calc(5rem + var(--sab))' }}>
         {activeTab === "run" && <ActiveRun />}
         {activeTab === "history" && <PostRunSummary />}
         {activeTab === "stats" && <Stats />}
