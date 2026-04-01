@@ -1,0 +1,16 @@
+{
+  "name": "cadence-runner",
+  "version": "0.1.0",
+  "private": true,
+  "description": "케이던스 메트로놈 러닝앱 - React + Vite + React Native hybrid",
+  "scripts": {
+    "web:dev": "pnpm --filter @cadence-runner/web dev",
+    "web:build": "pnpm --filter @cadence-runner/web build",
+    "mobile:start": "pnpm --filter @cadence-runner/mobile start",
+    "mobile:ios": "pnpm --filter @cadence-runner/mobile ios"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  }
+}

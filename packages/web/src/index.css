@@ -1,0 +1,121 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Stitch Design System: Emerald Velocity */
+@theme inline {
+  --font-heading: 'Space Grotesk', var(--font-sans);
+  --font-sans: 'Geist Variable', sans-serif;
+  --font-label: 'Space Grotesk', sans-serif;
+
+  /* Stitch color tokens */
+  --color-surface: #0d0d1c;
+  --color-surface-dim: #0d0d1c;
+  --color-surface-bright: #2a2a42;
+  --color-surface-container: #18182a;
+  --color-surface-container-low: #121223;
+  --color-surface-container-high: #1d1e32;
+  --color-surface-container-highest: #24243a;
+  --color-surface-container-lowest: #000000;
+  --color-surface-variant: #24243a;
+  --color-surface-tint: #69f6b8;
+
+  --color-primary: #69f6b8;
+  --color-primary-dim: #58e7ab;
+  --color-primary-container: #06b77f;
+  --color-primary-fixed: #69f6b8;
+  --color-on-primary: #005a3c;
+  --color-on-primary-container: #002919;
+
+  --color-secondary: #9093ff;
+  --color-secondary-dim: #6063ee;
+  --color-secondary-container: #2f2ebe;
+  --color-on-secondary: #080079;
+
+  --color-tertiary: #ffb148;
+  --color-tertiary-dim: #e79400;
+  --color-tertiary-container: #f8a010;
+  --color-on-tertiary: #573500;
+
+  --color-error: #ff716c;
+  --color-error-dim: #d7383b;
+  --color-error-container: #9f0519;
+  --color-on-error: #490006;
+
+  --color-on-surface: #e6e3fa;
+  --color-on-surface-variant: #aba9be;
+  --color-on-background: #e6e3fa;
+  --color-background: #0d0d1c;
+  --color-outline: #757487;
+  --color-outline-variant: #474658;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --radius: 0.5rem;
+  /* Native safe area insets — injected by RN WebView, fallback to env() for Safari */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+@layer base {
+  * {
+    @apply border-outline-variant/30;
+  }
+  body {
+    @apply bg-surface text-on-surface font-sans;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/* Stitch custom utilities */
+.glow-emerald {
+  text-shadow: 0 0 20px rgba(105, 246, 184, 0.4);
+}
+
+.active-pulse {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+
+/* Range slider styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  background: #24243a;
+  height: 8px;
+  border-radius: 4px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -12px;
+  background-color: #69f6b8;
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+  border: 4px solid #18182a;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}

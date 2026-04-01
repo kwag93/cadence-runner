@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+build/
+*.tsbuildinfo
+
+# React Native
+packages/mobile/ios/Pods/
+packages/mobile/ios/build/
+packages/mobile/android/app/build/
+packages/mobile/android/.gradle/
+*.xcworkspace
+!packages/mobile/ios/*.xcworkspace
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+
+# Metro
+packages/mobile/.metro-health-check*
+
+# Ruby
+packages/mobile/vendor/
