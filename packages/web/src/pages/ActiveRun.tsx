@@ -52,7 +52,7 @@ export function ActiveRun() {
           { label: "Distance", value: "4.82", unit: "KM" },
           { label: "Avg Pace", value: "5:02", unit: "/KM" },
         ].map((stat) => (
-          <Card key={stat.label} className="bg-surface-container-low border-outline-variant/20">
+          <Card key={stat.label} className="bg-surface-container-low border-transparent">
             <CardContent className="p-4 flex flex-col items-center">
               <span className="text-xs font-heading font-bold text-on-surface-variant uppercase mb-1">
                 {stat.label}
@@ -67,7 +67,7 @@ export function ActiveRun() {
       </div>
 
       {/* Metronome Card */}
-      <Card className="w-full mt-6 bg-surface-container-high/60 backdrop-blur-xl border-outline-variant/30 rounded-[2rem]">
+      <Card className="w-full mt-6 bg-surface-container-high/60 backdrop-blur-xl border-transparent rounded-[2rem]">
         <CardContent className="p-6 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
