@@ -23,7 +23,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
           <button
             key={id}
             onClick={() => onTabChange(id)}
-            className={`flex flex-col items-center justify-center transition-all active:scale-90 duration-150 ${
+            className={`flex flex-col items-center justify-center min-w-[44px] min-h-[44px] px-3 transition-all active:scale-90 duration-150 ${
               isActive
                 ? "text-primary drop-shadow-[0_0_12px_rgba(52,211,153,0.6)] scale-110"
                 : "text-slate-500 hover:text-emerald-200"
