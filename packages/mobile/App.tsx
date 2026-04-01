@@ -1,17 +1,16 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {Platform, StatusBar, StyleSheet, View} from 'react-native';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import {WebView, type WebViewMessageEvent} from 'react-native-webview';
-import {BPM_DEFAULT, type WebMessage} from '@cadence-runner/shared';
+import {BPM_DEFAULT, BPM_MIN, BPM_MAX, type WebMessage} from '@cadence-runner/shared';
 import NativeMetronome from './specs/NativeMetronome';
 
 const SURFACE_BG = '#070d1f';
 
 // 개발: Vite dev server, 프로덕션: 번들된 HTML
-// 실기기: Mac의 LAN IP로 변경 필요 (e.g. 192.168.x.x)
 const DEV_SERVER_HOST = Platform.select({
   ios: 'localhost',
   android: '10.0.2.2',
@@ -19,7 +18,12 @@ const DEV_SERVER_HOST = Platform.select({
 const DEV_PORT = 5173;
 const DEV_URL = `http://${DEV_SERVER_HOST}:${DEV_PORT}`;
 
-const WEB_URL = __DEV__ ? DEV_URL : 'file:///android_asset/web/index.html';
+const PROD_URL = Platform.select({
+  ios: '', // iOS: 번들 내 HTML (추후 설정)
+  android: 'file:///android_asset/web/index.html',
+})!;
+
+const WEB_URL = __DEV__ ? DEV_URL : PROD_URL;
 
 function App() {
   return (
@@ -33,8 +37,19 @@ function App() {
 function AppContent() {
   const insets = useSafeAreaInsets();
   const webViewRef = useRef<WebView>(null);
+  const targetBpmRef = useRef(BPM_DEFAULT);
 
-  /** WebView → Native 메시지 수신 */
+  // safe area 변경 시 WebView에 재주입
+  useEffect(() => {
+    webViewRef.current?.injectJavaScript(`
+      document.documentElement.style.setProperty('--sat', '${insets.top}px');
+      document.documentElement.style.setProperty('--sab', '${insets.bottom}px');
+      document.documentElement.style.setProperty('--sal', '${insets.left}px');
+      document.documentElement.style.setProperty('--sar', '${insets.right}px');
+      true;
+    `);
+  }, [insets.top, insets.bottom, insets.left, insets.right]);
+
   const handleMessage = useCallback((event: WebViewMessageEvent) => {
     let msg: WebMessage;
     try {
@@ -51,15 +66,20 @@ function AppContent() {
         NativeMetronome.stop();
         console.log('[Bridge] stop_workout');
         break;
-      case 'set_target_bpm':
-        NativeMetronome.setBpm(msg.value);
-        console.log('[Bridge] set_target_bpm:', msg.value);
+      case 'set_target_bpm': {
+        const bpm = msg.value;
+        if (typeof bpm !== 'number' || !Number.isFinite(bpm)) break;
+        const clamped = Math.max(BPM_MIN, Math.min(BPM_MAX, bpm));
+        targetBpmRef.current = clamped;
+        NativeMetronome.setBpm(clamped);
+        console.log('[Bridge] set_target_bpm:', clamped);
         break;
+      }
       case 'toggle_metronome':
         if (NativeMetronome.isPlaying()) {
           NativeMetronome.stop();
         } else {
-          NativeMetronome.start(BPM_DEFAULT);
+          NativeMetronome.start(targetBpmRef.current);
         }
         console.log('[Bridge] toggle_metronome');
         break;

@@ -20,9 +20,17 @@ import AVFoundation
         engine.attach(playerNode)
         engine.connect(playerNode, to: engine.mainMixerNode, format: format)
         generateClickBuffer()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleInterruption),
+            name: AVAudioSession.interruptionNotification,
+            object: nil
+        )
     }
 
     deinit {
+        NotificationCenter.default.removeObserver(self)
         stop()
     }
 
@@ -83,10 +91,38 @@ import AVFoundation
         return _isPlaying
     }
 
-    // MARK: - Click buffer 생성
+    // MARK: - Audio Interruption
+
+    @objc private func handleInterruption(notification: Notification) {
+        guard let info = notification.userInfo,
+              let typeValue = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
+
+        switch type {
+        case .began:
+            stopTimer()
+        case .ended:
+            guard let optionsValue = info[AVAudioSessionInterruptionOptionKey] as? UInt else { return }
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) && isPlaying {
+                do {
+                    try AVAudioSession.sharedInstance().setActive(true)
+                    try engine.start()
+                    playerNode.play()
+                    startTimer()
+                } catch {
+                    print("[MetronomeEngine] resume after interruption failed: \(error)")
+                }
+            }
+        @unknown default:
+            break
+        }
+    }
+
+    // MARK: - Click buffer
 
     private func generateClickBuffer() {
-        let clickDuration: Double = 0.015 // 15ms
+        let clickDuration: Double = 0.015
         let frameCount = AVAudioFrameCount(sampleRate * clickDuration)
         guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return }
         buffer.frameLength = frameCount
@@ -111,22 +147,28 @@ import AVFoundation
         let interval = 60.0 / _bpm
         lock.unlock()
 
-        timer = DispatchSource.makeTimerSource(queue: timerQueue)
-        timer?.schedule(deadline: .now(), repeating: interval)
-        timer?.setEventHandler { [weak self] in
-            self?.tick()
+        // timer 접근을 timerQueue에서 직렬화하여 race 방지
+        timerQueue.sync {
+            self.timer?.cancel()
+            let t = DispatchSource.makeTimerSource(queue: self.timerQueue)
+            t.schedule(deadline: .now(), repeating: interval)
+            t.setEventHandler { [weak self] in
+                self?.tick()
+            }
+            t.resume()
+            self.timer = t
         }
-        timer?.resume()
     }
 
     private func stopTimer() {
-        timer?.cancel()
-        timer = nil
+        timerQueue.sync {
+            self.timer?.cancel()
+            self.timer = nil
+        }
     }
 
     private func restartTimer() {
-        stopTimer()
-        startTimer()
+        startTimer() // startTimer가 내부에서 기존 timer를 cancel하므로 별도 stop 불필요
     }
 
     private func tick() {
