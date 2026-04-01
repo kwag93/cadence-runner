@@ -6,7 +6,7 @@ interface HeaderProps {
 
 export function Header({ title }: HeaderProps) {
   return (
-    <header className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md flex justify-between items-center px-6" style={{ paddingTop: 'var(--sat)', height: 'calc(5rem + var(--sat))' }}>
+    <header className="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md flex justify-between items-center px-6" style={{ paddingTop: 'var(--sat)', height: 'calc(var(--header-height) + var(--sat))' }}>
       <div className="flex items-center gap-3">
         <Zap className="w-6 h-6 text-primary" />
         <h1 className="font-heading uppercase tracking-[0.2em] font-bold text-primary italic text-2xl tracking-tighter">

@@ -68,6 +68,9 @@
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
+  /* Layout heights — single source of truth for header/bottomnav sizing */
+  --header-height: 5rem;
+  --bottomnav-height: 4rem;
 }
 
 @layer base {
