@@ -5,23 +5,26 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import {WebView, type WebViewMessageEvent} from 'react-native-webview';
-import type {WebMessage} from '@cadence-runner/shared';
+import {BPM_DEFAULT, type WebMessage} from '@cadence-runner/shared';
 import NativeMetronome from './specs/NativeMetronome';
 
+const SURFACE_BG = '#070d1f';
+
 // 개발: Vite dev server, 프로덕션: 번들된 HTML
-// 실기기 테스트 시 Mac의 LAN IP 사용
-const DEV_SERVER_HOST = '172.16.200.49';
-const DEV_URL = Platform.select({
-  ios: `http://${DEV_SERVER_HOST}:5174`,
-  android: 'http://10.0.2.2:5174',
+// 실기기: Mac의 LAN IP로 변경 필요 (e.g. 192.168.x.x)
+const DEV_SERVER_HOST = Platform.select({
+  ios: 'localhost',
+  android: '10.0.2.2',
 })!;
+const DEV_PORT = 5173;
+const DEV_URL = `http://${DEV_SERVER_HOST}:${DEV_PORT}`;
 
 const WEB_URL = __DEV__ ? DEV_URL : 'file:///android_asset/web/index.html';
 
 function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle="light-content" backgroundColor="#070d1f" />
+      <StatusBar barStyle="light-content" backgroundColor={SURFACE_BG} />
       <AppContent />
     </SafeAreaProvider>
   );
@@ -33,11 +36,15 @@ function AppContent() {
 
   /** WebView → Native 메시지 수신 */
   const handleMessage = useCallback((event: WebViewMessageEvent) => {
-    const msg: WebMessage = JSON.parse(event.nativeEvent.data);
+    let msg: WebMessage;
+    try {
+      msg = JSON.parse(event.nativeEvent.data);
+    } catch {
+      return;
+    }
 
     switch (msg.type) {
       case 'start_workout':
-        // Step 8: CadenceModule.start()
         console.log('[Bridge] start_workout');
         break;
       case 'stop_workout':
@@ -52,18 +59,16 @@ function AppContent() {
         if (NativeMetronome.isPlaying()) {
           NativeMetronome.stop();
         } else {
-          NativeMetronome.start(170); // 기본 BPM, WebView에서 set_target_bpm으로 조절
+          NativeMetronome.start(BPM_DEFAULT);
         }
         console.log('[Bridge] toggle_metronome');
         break;
       case 'speak':
-        // Step 9: VoiceAlertModule.speak(msg.text)
         console.log('[Bridge] speak:', msg.text);
         break;
     }
   }, []);
 
-  // safe area 패딩을 WebView에 CSS 변수로 주입
   const safeAreaScript = `
     document.documentElement.style.setProperty('--sat', '${insets.top}px');
     document.documentElement.style.setProperty('--sab', '${insets.bottom}px');
@@ -77,7 +82,7 @@ function AppContent() {
       <WebView
         ref={webViewRef}
         source={{uri: WEB_URL}}
-        style={[styles.webview, {backgroundColor: '#070d1f'}]}
+        style={[styles.webview, {backgroundColor: SURFACE_BG}]}
         originWhitelist={['*']}
         onMessage={handleMessage}
         injectedJavaScript={safeAreaScript}
@@ -94,7 +99,7 @@ function AppContent() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#070d1f',
+    backgroundColor: SURFACE_BG,
   },
   webview: {
     flex: 1,

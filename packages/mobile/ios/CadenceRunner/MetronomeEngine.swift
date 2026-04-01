@@ -9,6 +9,7 @@ import AVFoundation
 
     private var timer: DispatchSourceTimer?
     private let timerQueue = DispatchQueue(label: "metronome.timer", qos: .userInteractive)
+    private let lock = NSLock()
 
     private var _bpm: Double = 170
     private var _isPlaying = false
@@ -21,11 +22,18 @@ import AVFoundation
         generateClickBuffer()
     }
 
+    deinit {
+        stop()
+    }
+
     // MARK: - Public API
 
     @objc func start(_ bpm: Double) {
-        guard !_isPlaying else { return }
+        lock.lock()
+        guard !_isPlaying else { lock.unlock(); return }
         _bpm = bpm
+        _isPlaying = true
+        lock.unlock()
 
         do {
             try AVAudioSession.sharedInstance().setCategory(
@@ -35,17 +43,22 @@ import AVFoundation
             try engine.start()
         } catch {
             print("[MetronomeEngine] start failed: \(error)")
+            lock.lock()
+            _isPlaying = false
+            lock.unlock()
             return
         }
 
         playerNode.play()
-        _isPlaying = true
         startTimer()
     }
 
     @objc func stop() {
-        guard _isPlaying else { return }
+        lock.lock()
+        guard _isPlaying else { lock.unlock(); return }
         _isPlaying = false
+        lock.unlock()
+
         stopTimer()
         playerNode.stop()
         engine.stop()
@@ -53,13 +66,22 @@ import AVFoundation
     }
 
     @objc func setBpm(_ bpm: Double) {
+        lock.lock()
+        // Must match BPM_MIN/BPM_MAX in shared/constants.ts
         _bpm = max(30, min(300, bpm))
-        if _isPlaying {
+        let playing = _isPlaying
+        lock.unlock()
+
+        if playing {
             restartTimer()
         }
     }
 
-    @objc var isPlaying: Bool { _isPlaying }
+    @objc var isPlaying: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return _isPlaying
+    }
 
     // MARK: - Click buffer 생성
 
@@ -70,11 +92,11 @@ import AVFoundation
         buffer.frameLength = frameCount
 
         let data = buffer.floatChannelData![0]
-        let freq: Float = 1000.0 // 1kHz — 러닝 중 주변 소음에서도 잘 들리는 주파수
+        let freq: Float = 1000.0
 
         for i in 0..<Int(frameCount) {
             let t = Float(i) / Float(sampleRate)
-            let envelope = expf(-t * 300) // 빠른 감쇠
+            let envelope = expf(-t * 300)
             data[i] = sinf(2.0 * .pi * freq * t) * envelope * 0.7
         }
 
@@ -82,9 +104,13 @@ import AVFoundation
     }
 
     // MARK: - Timer
+    // TODO: Replace DispatchSourceTimer with AVAudioSourceNode render callback for sample-accurate timing
 
     private func startTimer() {
+        lock.lock()
         let interval = 60.0 / _bpm
+        lock.unlock()
+
         timer = DispatchSource.makeTimerSource(queue: timerQueue)
         timer?.schedule(deadline: .now(), repeating: interval)
         timer?.setEventHandler { [weak self] in
@@ -104,7 +130,10 @@ import AVFoundation
     }
 
     private func tick() {
-        guard _isPlaying else { return }
+        lock.lock()
+        let playing = _isPlaying
+        lock.unlock()
+        guard playing else { return }
         playerNode.scheduleBuffer(clickBuffer, at: nil, options: [], completionHandler: nil)
     }
 }
