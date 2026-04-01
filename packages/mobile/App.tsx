@@ -105,6 +105,10 @@ function AppContent() {
         style={[styles.webview, {backgroundColor: SURFACE_BG}]}
         originWhitelist={['*']}
         onMessage={handleMessage}
+        onError={(e) => console.error('[WebView] error:', e.nativeEvent.description)}
+        onHttpError={(e) => console.error('[WebView] HTTP error:', e.nativeEvent.statusCode, e.nativeEvent.url)}
+        onLoadStart={() => console.log('[WebView] loading:', WEB_URL)}
+        onLoadEnd={() => console.log('[WebView] loaded')}
         injectedJavaScript={safeAreaScript}
         javaScriptEnabled
         domStorageEnabled
