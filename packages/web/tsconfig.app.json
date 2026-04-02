@@ -27,8 +27,9 @@
     /* Path aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@cadence-runner/shared": ["../shared/src/index.ts"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "../shared/src"]
 }
