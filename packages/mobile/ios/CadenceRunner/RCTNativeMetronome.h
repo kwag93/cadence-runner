@@ -1,4 +1,4 @@
-#import <ReactCodegen/NativeMetronomeSpec/NativeMetronomeSpec.h>
+#import <ReactCodegen/CadenceRunnerSpecs/CadenceRunnerSpecs.h>
 
 @interface RCTNativeMetronome : NSObject <NativeMetronomeSpec>
 @end

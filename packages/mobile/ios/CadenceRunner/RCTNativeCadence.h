@@ -1,4 +1,4 @@
-#import <ReactCodegen/NativeCadenceSpec/NativeCadenceSpec.h>
+#import <ReactCodegen/CadenceRunnerSpecs/CadenceRunnerSpecs.h>
 
 @interface RCTNativeCadence : NSObject <NativeCadenceSpec>
 @end

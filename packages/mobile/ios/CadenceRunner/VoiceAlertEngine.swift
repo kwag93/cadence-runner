@@ -1,17 +1,17 @@
 import AVFoundation
 
-@objc class VoiceAlertEngine: NSObject, AVSpeechSynthesizerDelegate {
+@objc class VoiceAlertEngine: NSObject {
     private let synthesizer = AVSpeechSynthesizer()
+    private let delegateHandler = SpeechDelegate()
 
     override init() {
         super.init()
-        synthesizer.delegate = self
+        synthesizer.delegate = delegateHandler
     }
 
     @objc func speak(_ text: String) {
         guard !synthesizer.isSpeaking else { return }
 
-        // duck 다른 오디오 (메트로놈 포함)
         do {
             try AVAudioSession.sharedInstance().setCategory(
                 .playback, mode: .voicePrompt, options: [.duckOthers]
@@ -25,7 +25,6 @@ import AVFoundation
         utterance.pitchMultiplier = 1.0
         utterance.volume = 0.9
 
-        // 영어/한국어 자동 감지
         let isKorean = text.unicodeScalars.contains { $0.value >= 0xAC00 && $0.value <= 0xD7AF }
         utterance.voice = AVSpeechSynthesisVoice(language: isKorean ? "ko-KR" : "en-US")
 
@@ -34,15 +33,18 @@ import AVFoundation
 
     @objc func stop() {
         synthesizer.stopSpeaking(at: .immediate)
-        restoreAudioSession()
+        SpeechDelegate.restoreAudioSession()
     }
+}
 
-    // 음성 종료 시 오디오 세션 복원
+// AVSpeechSynthesizerDelegate를 별도 클래스로 분리하여
+// Swift-ObjC++ 브릿지 헤더에 AVFoundation 프로토콜이 노출되지 않도록 함
+private class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        restoreAudioSession()
+        SpeechDelegate.restoreAudioSession()
     }
 
-    private func restoreAudioSession() {
+    static func restoreAudioSession() {
         do {
             try AVAudioSession.sharedInstance().setCategory(
                 .playback, mode: .default, options: [.mixWithOthers, .duckOthers]

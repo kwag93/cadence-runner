@@ -1,4 +1,4 @@
-#import <ReactCodegen/NativeVoiceAlertSpec/NativeVoiceAlertSpec.h>
+#import <ReactCodegen/CadenceRunnerSpecs/CadenceRunnerSpecs.h>
 
 @interface RCTNativeVoiceAlert : NSObject <NativeVoiceAlertSpec>
 @end
