@@ -8,6 +8,7 @@ import {WebView, type WebViewMessageEvent} from 'react-native-webview';
 import {BPM_DEFAULT, BPM_MIN, BPM_MAX, type WebMessage} from '@cadence-runner/shared';
 import NativeMetronome from './specs/NativeMetronome';
 import NativeCadence from './specs/NativeCadence';
+import NativeVoiceAlert from './specs/NativeVoiceAlert';
 
 const SURFACE_BG = '#070d1f';
 
@@ -105,6 +106,9 @@ function AppContent() {
         console.log('[Bridge] toggle_metronome');
         break;
       case 'speak':
+        if (typeof msg.text === 'string' && msg.text.length > 0 && msg.text.length < 500) {
+          NativeVoiceAlert.speak(msg.text);
+        }
         console.log('[Bridge] speak:', msg.text);
         break;
     }

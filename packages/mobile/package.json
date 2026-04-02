@@ -47,7 +47,8 @@
     "ios": {
       "modulesProvider": {
         "NativeMetronome": "RCTNativeMetronome",
-        "NativeCadence": "RCTNativeCadence"
+        "NativeCadence": "RCTNativeCadence",
+        "NativeVoiceAlert": "RCTNativeVoiceAlert"
       }
     }
   }
