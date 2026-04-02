@@ -33,6 +33,23 @@ cd ios && bundle exec pod install
 `.npmrc`에 `node-linker=hoisted` 필수. pnpm 기본 strict symlink 구조는 Metro가 resolve 못함.
 `metro.config.js`에서 `watchFolders: [monorepoRoot]` + `nodeModulesPaths` 설정 필요.
 
+## React 버전 통일 (필수)
+
+**모든 패키지에서 React 버전이 정확히 동일해야 함.** `^` 범위 지정 금지.
+`node-linker=hoisted`에서 minor 버전이 다르면 (예: 19.2.3 vs 19.2.4) 두 개의 React 인스턴스가 공존하여
+"Invalid hook call" 에러가 발생하고 앱이 빈 화면으로 렌더링됨.
+
+```json
+// 올바름 (정확한 버전):
+"react": "19.2.3"
+
+// 틀림 (범위 허용):
+"react": "^19.2.3"
+```
+
+버전 변경 시: 모든 `packages/*/package.json`의 react, react-dom 버전을 동시에 변경 → `pnpm install` → 중복 확인:
+`find node_modules -path "*/node_modules/react/package.json" -not -path "*/.pnpm/*" | xargs grep '"version"'` (결과가 1줄이어야 정상)
+
 ## iOS Native Module 작성 규칙
 
 ### 새 파일은 Xcode 프로젝트에 등록
