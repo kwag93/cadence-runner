@@ -20,7 +20,10 @@ export function AppShell() {
     <div className="min-h-screen bg-surface">
       <Header title={headerTitles[activeTab]} />
       <main style={{ paddingTop: 'calc(var(--header-height) + var(--sat) + 1rem)', paddingBottom: 'calc(var(--bottomnav-height) + var(--sab) + 1rem)' }}>
-        {activeTab === "run" && <ActiveRun />}
+        {/* ActiveRun은 항상 마운트. 탭 전환해도 workout state + 타이머가 유지됨 */}
+        <div className={activeTab !== "run" ? "hidden" : undefined}>
+          <ActiveRun />
+        </div>
         {activeTab === "history" && <PostRunSummary />}
         {activeTab === "stats" && <Stats />}
         {activeTab === "settings" && <SettingsPage />}
