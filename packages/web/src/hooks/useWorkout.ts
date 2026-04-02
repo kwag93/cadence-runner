@@ -23,7 +23,6 @@ export function useWorkout() {
 
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
-  // elapsed time 카운터
   useEffect(() => {
     if (state.isRunning) {
       timerRef.current = setInterval(() => {
@@ -33,7 +32,6 @@ export function useWorkout() {
     return () => clearInterval(timerRef.current);
   }, [state.isRunning]);
 
-  // Native → Web 메시지 수신
   useEffect(() => {
     return onNativeMessage((msg) => {
       switch (msg.type) {
@@ -56,18 +54,20 @@ export function useWorkout() {
   }, []);
 
   const startWorkout = useCallback(() => {
-    setState(prev => ({ ...prev, isRunning: true, elapsedSeconds: 0, currentSpm: 0 }));
+    setState(prev => ({ ...prev, isRunning: true, elapsedSeconds: 0, currentSpm: 0, metronomeOn: true }));
     postToNative({ type: 'start_workout' });
-    postToNative({ type: 'toggle_metronome' });
+    postToNative({ type: 'start_metronome' });
   }, []);
 
   const stopWorkout = useCallback(() => {
     setState(prev => ({ ...prev, isRunning: false, metronomeOn: false }));
+    postToNative({ type: 'stop_metronome' });
     postToNative({ type: 'stop_workout' });
   }, []);
 
-  const toggleMetronome = useCallback(() => {
-    postToNative({ type: 'toggle_metronome' });
+  const setMetronome = useCallback((on: boolean) => {
+    setState(prev => ({ ...prev, metronomeOn: on }));
+    postToNative({ type: on ? 'start_metronome' : 'stop_metronome' });
   }, []);
 
   const setTargetBpm = useCallback((bpm: number) => {
@@ -75,5 +75,5 @@ export function useWorkout() {
     postToNative({ type: 'set_target_bpm', value: bpm });
   }, []);
 
-  return { ...state, startWorkout, stopWorkout, toggleMetronome, setTargetBpm };
+  return { ...state, startWorkout, stopWorkout, setMetronome, setTargetBpm };
 }

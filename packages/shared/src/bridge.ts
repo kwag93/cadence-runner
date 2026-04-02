@@ -12,7 +12,8 @@ export type WebMessage =
   | { type: 'start_workout' }
   | { type: 'stop_workout' }
   | { type: 'set_target_bpm'; value: number }
-  | { type: 'toggle_metronome' }
+  | { type: 'start_metronome' }
+  | { type: 'stop_metronome' }
   | { type: 'speak'; text: string };
 
 export type BridgeError = {

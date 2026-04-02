@@ -97,13 +97,13 @@ function AppContent() {
         console.log('[Bridge] set_target_bpm:', clamped);
         break;
       }
-      case 'toggle_metronome':
-        if (NativeMetronome.isPlaying()) {
-          NativeMetronome.stop();
-        } else {
-          NativeMetronome.start(targetBpmRef.current);
-        }
-        console.log('[Bridge] toggle_metronome');
+      case 'start_metronome':
+        NativeMetronome.start(targetBpmRef.current);
+        console.log('[Bridge] start_metronome');
+        break;
+      case 'stop_metronome':
+        NativeMetronome.stop();
+        console.log('[Bridge] stop_metronome');
         break;
       case 'speak':
         if (typeof msg.text === 'string' && msg.text.length > 0 && msg.text.length < 500) {

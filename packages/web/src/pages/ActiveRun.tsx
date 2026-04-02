@@ -10,7 +10,7 @@ export function ActiveRun() {
   const {
     isRunning, elapsedSeconds, currentSpm, targetBpm,
     metronomeOn, deviation,
-    startWorkout, stopWorkout, toggleMetronome,
+    startWorkout, stopWorkout, setMetronome,
   } = useWorkout();
 
   const deviationSign = deviation > 0 ? '+' : '';
@@ -97,7 +97,7 @@ export function ActiveRun() {
           </div>
           <Switch
             checked={metronomeOn}
-            onCheckedChange={toggleMetronome}
+            onCheckedChange={setMetronome}
             className="data-[state=checked]:bg-primary"
           />
         </CardContent>
