@@ -41,12 +41,13 @@
     "node": ">= 22.11.0"
   },
   "codegenConfig": {
-    "name": "NativeMetronomeSpec",
+    "name": "CadenceRunnerSpecs",
     "type": "modules",
     "jsSrcsDir": "specs",
     "ios": {
       "modulesProvider": {
-        "NativeMetronome": "RCTNativeMetronome"
+        "NativeMetronome": "RCTNativeMetronome",
+        "NativeCadence": "RCTNativeCadence"
       }
     }
   }

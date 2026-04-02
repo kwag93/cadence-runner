@@ -7,6 +7,7 @@ import {
 import {WebView, type WebViewMessageEvent} from 'react-native-webview';
 import {BPM_DEFAULT, BPM_MIN, BPM_MAX, type WebMessage} from '@cadence-runner/shared';
 import NativeMetronome from './specs/NativeMetronome';
+import NativeCadence from './specs/NativeCadence';
 
 const SURFACE_BG = '#070d1f';
 
@@ -38,6 +39,22 @@ function AppContent() {
   const insets = useSafeAreaInsets();
   const webViewRef = useRef<WebView>(null);
   const targetBpmRef = useRef(BPM_DEFAULT);
+  const workoutActiveRef = useRef(false);
+
+  // cadence polling: 1초마다 SPM을 WebView에 전달
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!workoutActiveRef.current) return;
+      const spm = NativeCadence.getCurrentSpm();
+      const msg = JSON.stringify({
+        type: 'cadence',
+        value: Math.round(spm),
+        timestamp: Date.now(),
+      });
+      webViewRef.current?.postMessage(msg);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // safe area 변경 시 WebView에 재주입
   useEffect(() => {
@@ -60,10 +77,14 @@ function AppContent() {
 
     switch (msg.type) {
       case 'start_workout':
+        workoutActiveRef.current = true;
+        NativeCadence.start();
         console.log('[Bridge] start_workout');
         break;
       case 'stop_workout':
+        workoutActiveRef.current = false;
         NativeMetronome.stop();
+        NativeCadence.stop();
         console.log('[Bridge] stop_workout');
         break;
       case 'set_target_bpm': {
