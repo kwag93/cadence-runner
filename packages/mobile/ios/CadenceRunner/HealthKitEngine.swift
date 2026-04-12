@@ -51,9 +51,25 @@ import HealthKit
     /// 심박수 관찰 시작 — 운동 시작 시 호출
     @objc func startHeartRateObserver() {
         guard !hrObserverStarted else { return }
+        hrObserverStarted = true
+
+        #if targetEnvironment(simulator)
+        // 시뮬레이터: mock 심박수 (120~160 BPM 범위 변동)
+        print("[HealthKit] Simulator — using mock heart rate data")
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
+        timer.schedule(deadline: .now(), repeating: 5)
+        timer.setEventHandler { [weak self] in
+            let base = 140.0
+            let noise = Double.random(in: -20...20)
+            self?.hrLock.lock()
+            self?._cachedHeartRate = base + noise
+            self?.hrLock.unlock()
+        }
+        timer.resume()
+        hrTimer = timer
+        #else
         guard HKHealthStore.isHealthDataAvailable() else { return }
         guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return }
-        hrObserverStarted = true
 
         // 초기 쿼리 + 5초마다 업데이트
         fetchLatestHeartRate(heartRateType)
@@ -64,6 +80,7 @@ import HealthKit
         }
         timer.resume()
         hrTimer = timer
+        #endif
     }
 
     private var hrTimer: DispatchSourceTimer?

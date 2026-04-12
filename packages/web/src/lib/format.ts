@@ -1,5 +1,11 @@
-/** 초를 MM:SS 형식으로 변환 */
+/** 초를 MM:SS 또는 H:MM:SS 형식으로 변환 */
 export function formatTime(seconds: number): string {
+  if (seconds >= 3600) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${s.toString().padStart(2, '0')}`;
