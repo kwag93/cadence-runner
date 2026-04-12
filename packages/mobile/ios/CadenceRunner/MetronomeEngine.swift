@@ -335,8 +335,8 @@ import UIKit
         lock.unlock()
 
         var info = [String: Any]()
-        info[MPMediaItemPropertyTitle] = "Cadence Runner"
-        info[MPMediaItemPropertyArtist] = "\(Int(bpm)) BPM Metronome"
+        info[MPMediaItemPropertyTitle] = "케이던스 러너"
+        info[MPMediaItemPropertyArtist] = "\(Int(bpm)) BPM 메트로놈"
         info[MPNowPlayingInfoPropertyIsLiveStream] = true
         if let start = startTime {
             info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = Date().timeIntervalSince(start)
