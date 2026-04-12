@@ -66,8 +66,9 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
   const elapsedRef = useRef(state.elapsedSeconds);
   elapsedRef.current = state.elapsedSeconds;
 
+  // Live Activity: SPM/BPM/메트로놈 변경 시 + 매 30초마다 시간 갱신
   useEffect(() => {
-    if (!state.isRunning || state.currentSpm === 0) return;
+    if (!state.isRunning) return;
     postToNative({
       type: 'update_live_activity',
       elapsedSeconds: elapsedRef.current,
@@ -76,6 +77,20 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
       metronomeOn: state.metronomeOn,
     });
   }, [state.isRunning, state.currentSpm, state.targetBpm, state.metronomeOn]);
+
+  // 경과 시간 갱신 (30초마다)
+  useEffect(() => {
+    if (!state.isRunning || state.isPaused) return;
+    if (state.elapsedSeconds > 0 && state.elapsedSeconds % 30 === 0) {
+      postToNative({
+        type: 'update_live_activity',
+        elapsedSeconds: state.elapsedSeconds,
+        currentSpm: state.currentSpm,
+        targetBpm: state.targetBpm,
+        metronomeOn: state.metronomeOn,
+      });
+    }
+  }, [state.elapsedSeconds, state.isRunning, state.isPaused, state.currentSpm, state.targetBpm, state.metronomeOn]);
 
   // 타이머: isRunning && !isPaused 일 때만 카운트
   useEffect(() => {
