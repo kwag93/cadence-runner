@@ -3,6 +3,16 @@ import type { UserSettings, WorkoutSession, SpmSample } from '@cadence-runner/sh
 import { DEVIATION_SUSTAINED_SECONDS } from '@cadence-runner/shared';
 import { postToNative, onNativeMessage } from '@/lib/bridge';
 
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
 interface WorkoutState {
   isRunning: boolean;
   isPaused: boolean;
@@ -28,7 +38,6 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     deviation: 0,
   });
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const samplesRef = useRef<SpmSample[]>([]);
   const startTimeRef = useRef<string>('');
   const lastAlertRef = useRef<number>(0);
@@ -39,12 +48,11 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
 
   // 타이머: isRunning && !isPaused 일 때만 카운트
   useEffect(() => {
-    if (state.isRunning && !state.isPaused) {
-      timerRef.current = setInterval(() => {
-        setState(prev => ({ ...prev, elapsedSeconds: prev.elapsedSeconds + 1 }));
-      }, 1000);
-    }
-    return () => clearInterval(timerRef.current);
+    if (!state.isRunning || state.isPaused) return;
+    const timer = setInterval(() => {
+      setState(prev => ({ ...prev, elapsedSeconds: prev.elapsedSeconds + 1 }));
+    }, 1000);
+    return () => clearInterval(timer);
   }, [state.isRunning, state.isPaused]);
 
   // 네이티브 메시지 리스너 — 모든 로직을 콜백 내에서 처리
@@ -126,6 +134,7 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
       deviation: 0,
     });
     postToNative({ type: 'set_target_bpm', value: bpm });
+    postToNative({ type: 'set_haptic', enabled: settingsRef.current.hapticEnabled });
     postToNative({ type: 'start_workout' });
     postToNative({ type: 'start_metronome' });
   }, []);
@@ -147,7 +156,7 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     const onTarget = spmValues.filter(v => Math.abs(v - target) <= threshold).length;
 
     const session: WorkoutSession = {
-      id: crypto.randomUUID(),
+      id: generateId(),
       startedAt: startTimeRef.current,
       endedAt: new Date().toISOString(),
       durationSeconds: elapsed,

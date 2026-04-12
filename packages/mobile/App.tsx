@@ -111,6 +111,15 @@ function AppContent() {
         }
         console.log('[Bridge] speak:', msg.text);
         break;
+      case 'set_haptic':
+        if (typeof msg.enabled === 'boolean') {
+          NativeMetronome.setHapticEnabled(msg.enabled);
+        }
+        console.log('[Bridge] set_haptic:', msg.enabled);
+        break;
+      default:
+        console.warn('[Bridge] unknown message type:', (msg as {type: string}).type);
+        break;
     }
   }, []);
 

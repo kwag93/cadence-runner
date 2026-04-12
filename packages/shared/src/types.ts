@@ -26,6 +26,7 @@ export interface UserSettings {
   targetBpm: number;
   soundType: SoundType;
   voiceEnabled: boolean;
+  hapticEnabled: boolean;
   deviationThreshold: number;
   cooldownSeconds: number;
   autoPauseThreshold: number;

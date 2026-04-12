@@ -34,6 +34,10 @@
     [engine setBpm:bpm];
 }
 
+- (void)setHapticEnabled:(BOOL)enabled {
+    [engine setHapticEnabled:enabled];
+}
+
 - (NSNumber *)isPlaying {
     return @([engine isPlaying]);
 }

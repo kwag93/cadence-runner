@@ -14,7 +14,8 @@ export type WebMessage =
   | { type: 'set_target_bpm'; value: number }
   | { type: 'start_metronome' }
   | { type: 'stop_metronome' }
-  | { type: 'speak'; text: string };
+  | { type: 'speak'; text: string }
+  | { type: 'set_haptic'; enabled: boolean };
 
 export type BridgeError = {
   type: 'error';

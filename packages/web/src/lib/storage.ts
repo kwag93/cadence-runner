@@ -17,6 +17,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   targetBpm: BPM_DEFAULT,
   soundType: 'Click',
   voiceEnabled: true,
+  hapticEnabled: true,
   deviationThreshold: DEVIATION_THRESHOLD_SPM,
   cooldownSeconds: VOICE_COOLDOWN_SECONDS,
   autoPauseThreshold: AUTO_PAUSE_SPM_THRESHOLD,
@@ -48,15 +49,31 @@ export function loadHistory(): WorkoutSession[] {
   }
 }
 
+/** 최대 저장 세션 수 — 오래된 세션은 자동 제거 */
+const MAX_SESSIONS = 200;
+
 export function saveHistory(sessions: WorkoutSession[]): void {
-  localStorage.setItem(KEYS.history, JSON.stringify(sessions));
+  const trimmed = sessions.slice(0, MAX_SESSIONS);
+  try {
+    localStorage.setItem(KEYS.history, JSON.stringify(trimmed));
+  } catch {
+    // QuotaExceededError — 오래된 세션의 샘플 데이터를 축소하여 재시도
+    const compacted = trimmed.map((s, i) =>
+      i >= 50 ? { ...s, samples: [] } : s
+    );
+    try {
+      localStorage.setItem(KEYS.history, JSON.stringify(compacted));
+    } catch {
+      // 그래도 실패하면 무시 — 데이터 손실보다 앱 크래시가 더 나쁨
+    }
+  }
 }
 
 export function addSession(session: WorkoutSession): WorkoutSession[] {
   const sessions = loadHistory();
   sessions.unshift(session);
   saveHistory(sessions);
-  return sessions;
+  return sessions.slice(0, MAX_SESSIONS);
 }
 
 export function deleteSession(id: string): WorkoutSession[] {

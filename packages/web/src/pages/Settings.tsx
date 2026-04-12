@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Timer, Mic, PauseCircle } from "lucide-react";
+import { Timer, Mic, PauseCircle, Vibrate } from "lucide-react";
 import type { UserSettings } from "@cadence-runner/shared";
 
 const soundTypes = ["Click", "Woodblock", "Digital"] as const;
@@ -74,6 +74,26 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
             </CardContent>
           </Card>
         </div>
+      </section>
+
+      {/* Haptic Feedback */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Vibrate className="w-6 h-6 text-primary" />
+            <h2 className="text-2xl font-bold font-heading tracking-tight text-on-surface uppercase">
+              Haptic
+            </h2>
+          </div>
+          <Switch
+            checked={settings.hapticEnabled}
+            onCheckedChange={(v) => onUpdate('hapticEnabled', v)}
+            className="data-[state=checked]:bg-primary"
+          />
+        </div>
+        <p className="text-sm text-outline">
+          Feel each metronome beat through vibration — great when running with music.
+        </p>
       </section>
 
       {/* Voice Alert */}

@@ -30,6 +30,7 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
   }, []);
 
   const handleStart = useCallback(() => {
+    clearInterval(countdownRef.current);
     setCountdown(3);
     postToNative({ type: 'speak', text: '3' });
 
