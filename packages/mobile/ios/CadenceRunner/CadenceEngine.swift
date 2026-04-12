@@ -1,5 +1,6 @@
 import CoreMotion
 import Foundation
+import UIKit
 
 @objc class CadenceEngine: NSObject {
     private let pedometer = CMPedometer()
@@ -28,6 +29,11 @@ import Foundation
         }
 
         _isRunning = true
+
+        // 운동 중 화면 꺼짐 방지
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
         lastStepCount = 0
         lastTimestamp = Date()
 
@@ -57,5 +63,10 @@ import Foundation
         guard _isRunning else { return }
         _isRunning = false
         pedometer.stopUpdates()
+
+        // 화면 꺼짐 방지 해제
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = false
+        }
     }
 }

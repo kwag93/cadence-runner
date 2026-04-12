@@ -1,4 +1,5 @@
 import AVFoundation
+import MediaPlayer
 import UIKit
 
 @objc class MetronomeEngine: NSObject {
@@ -19,12 +20,16 @@ import UIKit
     // 햅틱 피드백 — main thread에서만 접근
     private var hapticGenerator: UIImpactFeedbackGenerator?
 
+    // Lock Screen Now Playing
+    private var startTime: Date?
+
     override init() {
         format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
         super.init()
         engine.attach(playerNode)
         engine.connect(playerNode, to: engine.mainMixerNode, format: format)
         generateClickBuffer()
+        setupRemoteCommands()
 
         NotificationCenter.default.addObserver(
             self,
@@ -69,6 +74,8 @@ import UIKit
             self?.hapticGenerator = gen
         }
 
+        startTime = Date()
+        updateNowPlaying()
         playerNode.play()
         startTimer()
     }
@@ -87,6 +94,9 @@ import UIKit
         DispatchQueue.main.async { [weak self] in
             self?.hapticGenerator = nil
         }
+
+        startTime = nil
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
     }
 
     @objc func setHapticEnabled(_ enabled: Bool) {
@@ -207,5 +217,58 @@ import UIKit
                 self?.hapticGenerator?.impactOccurred()
             }
         }
+    }
+
+    // MARK: - Lock Screen Now Playing
+
+    private func setupRemoteCommands() {
+        let center = MPRemoteCommandCenter.shared()
+
+        center.playCommand.isEnabled = true
+        center.playCommand.addTarget { [weak self] _ in
+            guard let self = self, !self.isPlaying else { return .commandFailed }
+            self.lock.lock()
+            let bpm = self._bpm
+            self.lock.unlock()
+            self.start(bpm)
+            return .success
+        }
+
+        center.pauseCommand.isEnabled = true
+        center.pauseCommand.addTarget { [weak self] _ in
+            self?.stop()
+            return .success
+        }
+
+        center.togglePlayPauseCommand.isEnabled = true
+        center.togglePlayPauseCommand.addTarget { [weak self] _ in
+            guard let self = self else { return .commandFailed }
+            if self.isPlaying {
+                self.stop()
+            } else {
+                self.lock.lock()
+                let bpm = self._bpm
+                self.lock.unlock()
+                self.start(bpm)
+            }
+            return .success
+        }
+    }
+
+    private func updateNowPlaying() {
+        lock.lock()
+        let bpm = _bpm
+        lock.unlock()
+
+        var info = [String: Any]()
+        info[MPMediaItemPropertyTitle] = "Cadence Runner"
+        info[MPMediaItemPropertyArtist] = "\(Int(bpm)) BPM Metronome"
+        info[MPNowPlayingInfoPropertyIsLiveStream] = true
+        if let start = startTime {
+            info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = Date().timeIntervalSince(start)
+        }
+        info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = info
     }
 }
