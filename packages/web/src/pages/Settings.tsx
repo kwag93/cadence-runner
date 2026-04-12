@@ -46,7 +46,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
                   step={1}
                   className="w-full"
                 />
-                <div className="flex justify-between text-[10px] font-heading text-outline mt-2">
+                <div className="flex justify-between text-xs font-heading text-outline mt-2">
                   <span>{BPM_MIN} BPM</span>
                   <span>{BPM_MAX} BPM</span>
                 </div>
@@ -125,7 +125,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
                   <label className="font-heading text-on-surface-variant font-bold uppercase tracking-wider text-xs block">
                     편차 임계값
                   </label>
-                  <p className="text-[10px] text-outline mt-1">케이던스가 벗어나면 알림 발생</p>
+                  <p className="text-xs text-outline mt-1">케이던스가 벗어나면 알림 발생</p>
                 </div>
                 <span className="text-2xl font-black text-tertiary font-heading">
                   ±{settings.deviationThreshold}<span className="text-sm font-medium ml-1">SPM</span>
@@ -138,7 +138,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
                 max={20}
                 step={1}
               />
-              <div className="flex justify-between text-[10px] font-heading text-outline mt-2">
+              <div className="flex justify-between text-xs font-heading text-outline mt-2">
                 <span>±5 SPM</span>
                 <span>±20 SPM</span>
               </div>
@@ -152,7 +152,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
                   <label className="font-heading text-on-surface-variant font-bold uppercase tracking-wider text-xs block">
                     알림 간격
                   </label>
-                  <p className="text-[10px] text-outline mt-1">알림 사이 대기 시간</p>
+                  <p className="text-xs text-outline mt-1">알림 사이 대기 시간</p>
                 </div>
                 <span className="text-2xl font-black text-on-surface font-heading">
                   {settings.cooldownSeconds}<span className="text-sm font-medium ml-1">초</span>
@@ -165,7 +165,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
                 max={30}
                 step={1}
               />
-              <div className="flex justify-between text-[10px] font-heading text-outline mt-2">
+              <div className="flex justify-between text-xs font-heading text-outline mt-2">
                 <span>10초</span>
                 <span>30초</span>
               </div>
@@ -199,7 +199,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
                   max={100}
                   step={1}
                 />
-                <div className="flex justify-between text-[10px] font-heading text-outline mt-2">
+                <div className="flex justify-between text-xs font-heading text-outline mt-2">
                   <span>30 SPM</span>
                   <span>100 SPM</span>
                 </div>

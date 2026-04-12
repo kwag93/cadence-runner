@@ -69,14 +69,14 @@ function SessionList({ sessions, onView }: {
                 <p className="font-bold text-sm truncate">
                   {formatDate(s.startedAt)} {formatTimeOfDay(s.startedAt)}
                 </p>
-                <p className="text-[10px] text-on-surface-variant uppercase tracking-wide">
+                <p className="text-xs text-on-surface-variant uppercase tracking-wide">
                   {formatTime(s.durationSeconds)} · {onTargetPct}% 목표 달성
                 </p>
               </div>
               <div className="text-right flex items-center gap-2">
                 <div>
                   <p className="font-heading font-bold text-primary">{s.avgSpm}</p>
-                  <p className="text-[9px] text-on-surface-variant uppercase tracking-tighter">평균 SPM</p>
+                  <p className="text-xs text-on-surface-variant uppercase tracking-tighter">평균 SPM</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-outline" />
               </div>
@@ -209,7 +209,7 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
                 return <div key={i} className={`${color} w-full rounded-t-sm`} style={{ height: `${h}%` }} />;
               })}
             </div>
-            <div className="flex justify-between mt-3 text-[10px] font-heading text-on-surface-variant uppercase tracking-widest">
+            <div className="flex justify-between mt-3 text-xs font-heading text-on-surface-variant uppercase tracking-widest">
               <span>시작</span>
               <span>중간</span>
               <span>종료</span>
@@ -218,7 +218,7 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
               {zones.map((z) => (
                 <div key={z.label} className="flex-1 flex flex-col items-center p-2 rounded bg-surface-container-low border border-outline-variant/30">
                   <div className={`w-2 h-2 rounded-full ${z.color} mb-1`} />
-                  <span className="text-[10px] text-on-surface-variant">{z.label}</span>
+                  <span className="text-xs text-on-surface-variant">{z.label}</span>
                   <span className="text-sm font-bold">{z.pct}</span>
                 </div>
               ))}

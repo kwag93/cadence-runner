@@ -118,12 +118,12 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
         ].map((stat) => (
           <Card key={stat.label} className="bg-surface-container-low border-transparent">
             <CardContent className="p-3 flex flex-col items-center">
-              <span className="text-[10px] font-heading font-bold text-on-surface-variant uppercase mb-0.5">
+              <span className="text-xs font-heading font-bold text-on-surface-variant uppercase mb-0.5">
                 {stat.label}
               </span>
               <span className="text-lg font-black font-heading">
                 {stat.value}
-                {stat.unit && <span className="text-[10px] ml-1 text-on-surface-variant">{stat.unit}</span>}
+                {stat.unit && <span className="text-xs ml-1 text-on-surface-variant">{stat.unit}</span>}
               </span>
             </CardContent>
           </Card>
@@ -155,7 +155,7 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
           <div className="flex items-center gap-2 mt-2">
             <button
               onClick={() => setTargetBpm(Math.max(BPM_MIN, targetBpm - 5))}
-              className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
+              className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
             >
               <Minus className="w-3.5 h-3.5" />
             </button>
@@ -169,7 +169,7 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
             />
             <button
               onClick={() => setTargetBpm(Math.min(BPM_MAX, targetBpm + 5))}
-              className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
+              className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>

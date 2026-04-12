@@ -47,7 +47,7 @@ export function Stats({ sessions, settings }: StatsProps) {
     <div className="px-6 space-y-8 max-w-5xl mx-auto">
       {/* Hero Metric */}
       <section className="mt-8">
-        <p className="font-heading text-on-surface-variant uppercase tracking-widest text-[10px] mb-2">
+        <p className="font-heading text-on-surface-variant uppercase tracking-widest text-xs mb-2">
           전체 평균
         </p>
         <div className="flex items-baseline gap-4">
@@ -72,7 +72,7 @@ export function Stats({ sessions, settings }: StatsProps) {
         ].map((pb) => (
           <Card key={pb.label} className={`bg-surface-container-low border-0 border-l-2 ${pb.color}`}>
             <CardContent className="p-5">
-              <p className="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">{pb.label}</p>
+              <p className="text-xs uppercase tracking-widest text-on-surface-variant mb-1">{pb.label}</p>
               <p className="font-heading text-2xl font-bold">
                 {pb.value}
                 {pb.unit && <span className="text-xs font-normal opacity-60 ml-1">{pb.unit}</span>}
@@ -100,12 +100,12 @@ export function Stats({ sessions, settings }: StatsProps) {
                   const isLatest = i === monthlyData.length - 1;
                   return (
                     <div key={m.label} className="flex flex-col items-center flex-1 gap-2">
-                      <span className="text-[10px] font-bold text-on-surface-variant">{m.avg}</span>
+                      <span className="text-xs font-bold text-on-surface-variant">{m.avg}</span>
                       <div
                         className={`w-full rounded-t-lg ${isLatest ? 'bg-primary shadow-[0_0_15px_rgba(105,246,184,0.3)]' : 'bg-surface-container-highest'}`}
                         style={{ height: `${h}%` }}
                       />
-                      <span className={`text-[9px] uppercase tracking-tighter ${isLatest ? 'text-primary' : 'text-on-surface-variant'}`}>
+                      <span className={`text-xs uppercase tracking-tighter ${isLatest ? 'text-primary' : 'text-on-surface-variant'}`}>
                         {m.label}
                       </span>
                     </div>
@@ -145,13 +145,13 @@ export function Stats({ sessions, settings }: StatsProps) {
               </div>
               <div className="flex-grow">
                 <p className="font-bold text-sm">{formatDate(s.startedAt)}</p>
-                <p className="text-[10px] text-on-surface-variant uppercase tracking-wide">
+                <p className="text-xs text-on-surface-variant uppercase tracking-wide">
                   {formatTime(s.durationSeconds)} · {Math.round(s.onTargetRatio * 100)}% 목표 달성
                 </p>
               </div>
               <div className="text-right">
                 <p className="font-heading font-bold text-primary">{s.avgSpm}</p>
-                <p className="text-[9px] text-on-surface-variant uppercase tracking-tighter">평균 SPM</p>
+                <p className="text-xs text-on-surface-variant uppercase tracking-tighter">평균 SPM</p>
               </div>
             </CardContent>
           </Card>
