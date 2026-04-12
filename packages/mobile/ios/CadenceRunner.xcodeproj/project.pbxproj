@@ -10,7 +10,7 @@
 		0C80B921A6F3F58F76C31292 /* libPods-CadenceRunner.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-CadenceRunner.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		1BDBC9DBB6B408744821C2DE /* RCTNativeHealthKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 80635FF5C86025CC27906FBE /* RCTNativeHealthKit.h */; };
-		2BC3B50D99CF9332A88AB1CD /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83203620D0CC5554B45F840D /* HealthKit.framework */; };
+		2BC3B50D99CF9332A88AB1CD /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83203620D0CC5554B45F840D /* HealthKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		304BF446B1FBF7D50F93EAE4 /* RCTNativeVoiceAlert.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0FE0C4BC65440179A78F52E7 /* RCTNativeVoiceAlert.mm */; };
 		4EE4F39AA697513B4AE0FF96 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
@@ -183,10 +183,8 @@
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1120;
+						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
-							com.apple.HealthKit = {
-								enabled = 1;
-							};
 						};
 					};
 				};
