@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { BPM_DEFAULT } from '@cadence-runner/shared';
+import type { UserSettings, WorkoutSession, SpmSample } from '@cadence-runner/shared';
+import { DEVIATION_SUSTAINED_SECONDS } from '@cadence-runner/shared';
 import { postToNative, onNativeMessage } from '@/lib/bridge';
 
 interface WorkoutState {
   isRunning: boolean;
+  isPaused: boolean;
   elapsedSeconds: number;
   currentSpm: number;
   targetBpm: number;
@@ -11,36 +13,90 @@ interface WorkoutState {
   deviation: number;
 }
 
-export function useWorkout() {
+interface UseWorkoutOptions {
+  settings: UserSettings;
+}
+
+export function useWorkout({ settings }: UseWorkoutOptions) {
   const [state, setState] = useState<WorkoutState>({
     isRunning: false,
+    isPaused: false,
     elapsedSeconds: 0,
     currentSpm: 0,
-    targetBpm: BPM_DEFAULT,
+    targetBpm: settings.targetBpm,
     metronomeOn: false,
     deviation: 0,
   });
 
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const samplesRef = useRef<SpmSample[]>([]);
+  const startTimeRef = useRef<string>('');
+  const lastAlertRef = useRef<number>(0);
+  const deviationStreakRef = useRef<number>(0);
+  const lowSpmStreakRef = useRef<number>(0);
+  const settingsRef = useRef(settings);
+  useEffect(() => { settingsRef.current = settings; });
 
+  // 타이머: isRunning && !isPaused 일 때만 카운트
   useEffect(() => {
-    if (state.isRunning) {
+    if (state.isRunning && !state.isPaused) {
       timerRef.current = setInterval(() => {
         setState(prev => ({ ...prev, elapsedSeconds: prev.elapsedSeconds + 1 }));
       }, 1000);
     }
     return () => clearInterval(timerRef.current);
-  }, [state.isRunning]);
+  }, [state.isRunning, state.isPaused]);
 
+  // 네이티브 메시지 리스너 — 모든 로직을 콜백 내에서 처리
   useEffect(() => {
     return onNativeMessage((msg) => {
       switch (msg.type) {
         case 'cadence':
-          setState(prev => ({
-            ...prev,
-            currentSpm: msg.value,
-            deviation: msg.value - prev.targetBpm,
-          }));
+          setState(prev => {
+            if (!prev.isRunning) return prev;
+
+            const deviation = msg.value - prev.targetBpm;
+            const absDev = Math.abs(deviation);
+            const now = Date.now();
+            const s = settingsRef.current;
+
+            // SPM 샘플 수집
+            if (samplesRef.current.length === 0 ||
+                msg.timestamp - samplesRef.current[samplesRef.current.length - 1].timestamp >= 1000) {
+              samplesRef.current.push({ timestamp: msg.timestamp, spm: msg.value });
+            }
+
+            // 자동 일시정지 체크
+            if (msg.value > 0 && msg.value < s.autoPauseThreshold) {
+              lowSpmStreakRef.current++;
+              if (lowSpmStreakRef.current >= 3) {
+                lowSpmStreakRef.current = 0;
+                postToNative({ type: 'stop_metronome' });
+                postToNative({ type: 'speak', text: '자동 일시정지' });
+                return { ...prev, currentSpm: msg.value, deviation, isPaused: true, metronomeOn: false };
+              }
+            } else {
+              lowSpmStreakRef.current = 0;
+            }
+
+            // 음성 알림 체크
+            if (s.voiceEnabled && !prev.isPaused && msg.value > 0) {
+              if (absDev > s.deviationThreshold) {
+                deviationStreakRef.current++;
+                if (deviationStreakRef.current >= DEVIATION_SUSTAINED_SECONDS &&
+                    now - lastAlertRef.current > s.cooldownSeconds * 1000) {
+                  const direction = deviation > 0 ? '빠릅니다' : '느립니다';
+                  postToNative({ type: 'speak', text: `케이던스가 ${absDev} ${direction}` });
+                  lastAlertRef.current = now;
+                  deviationStreakRef.current = 0;
+                }
+              } else {
+                deviationStreakRef.current = 0;
+              }
+            }
+
+            return { ...prev, currentSpm: msg.value, deviation };
+          });
           break;
         case 'metronome_state':
           setState(prev => ({
@@ -54,15 +110,60 @@ export function useWorkout() {
   }, []);
 
   const startWorkout = useCallback(() => {
-    setState(prev => ({ ...prev, isRunning: true, elapsedSeconds: 0, currentSpm: 0, metronomeOn: true }));
+    const bpm = settingsRef.current.targetBpm;
+    samplesRef.current = [];
+    startTimeRef.current = new Date().toISOString();
+    lastAlertRef.current = 0;
+    deviationStreakRef.current = 0;
+    lowSpmStreakRef.current = 0;
+    setState({
+      isRunning: true,
+      isPaused: false,
+      elapsedSeconds: 0,
+      currentSpm: 0,
+      targetBpm: bpm,
+      metronomeOn: true,
+      deviation: 0,
+    });
+    postToNative({ type: 'set_target_bpm', value: bpm });
     postToNative({ type: 'start_workout' });
     postToNative({ type: 'start_metronome' });
   }, []);
 
-  const stopWorkout = useCallback(() => {
-    setState(prev => ({ ...prev, isRunning: false, metronomeOn: false }));
+  const stopWorkout = useCallback((): WorkoutSession | null => {
+    const samples = [...samplesRef.current];
+    const elapsed = state.elapsedSeconds;
+    const target = state.targetBpm;
+
+    setState(prev => ({ ...prev, isRunning: false, isPaused: false, metronomeOn: false }));
     postToNative({ type: 'stop_metronome' });
     postToNative({ type: 'stop_workout' });
+
+    const spmValues = samples.map(s => s.spm).filter(v => v > 0);
+    if (spmValues.length === 0) return null;
+
+    const avgSpm = Math.round(spmValues.reduce((a, b) => a + b, 0) / spmValues.length);
+    const threshold = settingsRef.current.deviationThreshold;
+    const onTarget = spmValues.filter(v => Math.abs(v - target) <= threshold).length;
+
+    return {
+      id: crypto.randomUUID(),
+      startedAt: startTimeRef.current,
+      endedAt: new Date().toISOString(),
+      durationSeconds: elapsed,
+      targetBpm: target,
+      avgSpm,
+      maxSpm: Math.max(...spmValues),
+      minSpm: Math.min(...spmValues),
+      samples,
+      onTargetRatio: onTarget / spmValues.length,
+    };
+  }, [state.elapsedSeconds, state.targetBpm]);
+
+  const resumeWorkout = useCallback(() => {
+    setState(prev => ({ ...prev, isPaused: false, metronomeOn: true }));
+    postToNative({ type: 'start_metronome' });
+    lowSpmStreakRef.current = 0;
   }, []);
 
   const setMetronome = useCallback((on: boolean) => {
@@ -75,5 +176,12 @@ export function useWorkout() {
     postToNative({ type: 'set_target_bpm', value: bpm });
   }, []);
 
-  return { ...state, startWorkout, stopWorkout, setMetronome, setTargetBpm };
+  return {
+    ...state,
+    startWorkout,
+    stopWorkout,
+    resumeWorkout,
+    setMetronome,
+    setTargetBpm,
+  };
 }

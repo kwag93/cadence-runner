@@ -2,16 +2,29 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Flag, Music, Play, StopCircle } from "lucide-react";
+import { Flag, Music, Play, StopCircle, RotateCcw } from "lucide-react";
 import { useWorkout } from "@/hooks/useWorkout";
 import { formatTime } from "@/lib/format";
+import type { UserSettings, WorkoutSession } from "@cadence-runner/shared";
 
-export function ActiveRun() {
+interface ActiveRunProps {
+  settings: UserSettings;
+  onRunComplete: (session: WorkoutSession) => void;
+}
+
+export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
   const {
-    isRunning, elapsedSeconds, currentSpm, targetBpm,
+    isRunning, isPaused, elapsedSeconds, currentSpm, targetBpm,
     metronomeOn, deviation,
-    startWorkout, stopWorkout, setMetronome,
-  } = useWorkout();
+    startWorkout, stopWorkout, resumeWorkout, setMetronome,
+  } = useWorkout({ settings });
+
+  const handleStop = () => {
+    const session = stopWorkout();
+    if (session) {
+      onRunComplete(session);
+    }
+  };
 
   const deviationSign = deviation > 0 ? '+' : '';
   const displaySpm = isRunning ? currentSpm : 0;
@@ -21,9 +34,9 @@ export function ActiveRun() {
       {/* Elapsed Time */}
       <div className="w-full flex flex-col items-center mt-4">
         <Badge variant="outline" className="mb-4 bg-surface-container-high border-outline-variant/30 text-on-surface-variant font-heading font-bold tracking-wider text-sm px-4 py-1.5 rounded-full">
-          {isRunning ? 'ELAPSED TIME' : 'READY'}
+          {isPaused ? 'PAUSED' : isRunning ? 'ELAPSED TIME' : 'READY'}
         </Badge>
-        <div className="text-5xl font-black font-heading tracking-tighter text-on-surface">
+        <div className={`text-5xl font-black font-heading tracking-tighter ${isPaused ? 'text-tertiary animate-pulse' : 'text-on-surface'}`}>
           {formatTime(elapsedSeconds)}
         </div>
       </div>
@@ -31,7 +44,7 @@ export function ActiveRun() {
       {/* Hero SPM */}
       <div className="relative w-full max-w-sm aspect-square flex flex-col items-center justify-center mt-6">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className={`w-64 h-64 border-2 border-primary/20 rounded-full ${isRunning ? 'active-pulse' : ''}`} />
+          <div className={`w-64 h-64 border-2 border-primary/20 rounded-full ${isRunning && !isPaused ? 'active-pulse' : ''}`} />
           <div className="absolute w-80 h-80 border border-primary/10 rounded-full" />
         </div>
         <div className="z-10 flex flex-col items-center">
@@ -103,10 +116,30 @@ export function ActiveRun() {
         </CardContent>
       </Card>
 
-      {/* Start / Stop Button */}
-      {isRunning ? (
+      {/* Start / Stop / Resume Buttons */}
+      {isPaused ? (
+        <div className="w-full mt-10 flex gap-3">
+          <Button
+            onClick={resumeWorkout}
+            size="lg"
+            className="flex-1 bg-gradient-to-br from-primary to-primary-container text-on-primary font-black font-heading py-6 rounded-3xl text-xl tracking-widest uppercase shadow-lg shadow-primary/20 active:scale-[0.98] h-auto"
+          >
+            <RotateCcw className="w-6 h-6 mr-2" />
+            RESUME
+          </Button>
+          <Button
+            onClick={handleStop}
+            variant="destructive"
+            size="lg"
+            className="flex-1 bg-error-dim hover:bg-error text-white font-black font-heading py-6 rounded-3xl text-xl tracking-widest uppercase shadow-lg shadow-error/20 active:scale-[0.98] h-auto"
+          >
+            <StopCircle className="w-6 h-6 mr-2" />
+            END
+          </Button>
+        </div>
+      ) : isRunning ? (
         <Button
-          onClick={stopWorkout}
+          onClick={handleStop}
           variant="destructive"
           size="lg"
           className="w-full mt-10 bg-error-dim hover:bg-error text-white font-black font-heading py-6 rounded-3xl text-xl tracking-widest uppercase shadow-lg shadow-error/20 active:scale-[0.98] h-auto"

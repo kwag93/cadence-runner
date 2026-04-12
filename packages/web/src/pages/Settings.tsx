@@ -2,18 +2,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Timer, Mic, PauseCircle } from "lucide-react";
-import { useState } from "react";
+import type { UserSettings } from "@cadence-runner/shared";
 
 const soundTypes = ["Click", "Woodblock", "Digital"] as const;
 
-export function SettingsPage() {
-  const [bpm, setBpm] = useState(180);
-  const [selectedSound, setSelectedSound] = useState<string>("Click");
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
-  const [deviation, setDeviation] = useState(10);
-  const [cooldown, setCooldown] = useState(15);
-  const [autoPause, setAutoPause] = useState(60);
+interface SettingsPageProps {
+  settings: UserSettings;
+  onUpdate: <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => void;
+}
 
+export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-8 space-y-8">
       {/* Metronome */}
@@ -31,12 +29,12 @@ export function SettingsPage() {
                 <label className="font-heading text-on-surface-variant font-bold uppercase tracking-wider text-xs">
                   BPM Range
                 </label>
-                <span className="text-3xl font-black text-primary font-heading">{bpm}</span>
+                <span className="text-3xl font-black text-primary font-heading">{settings.targetBpm}</span>
               </div>
               <div className="mt-4">
                 <Slider
-                  value={[bpm]}
-                  onValueChange={(v) => setBpm(Array.isArray(v) ? v[0] : v)}
+                  value={[settings.targetBpm]}
+                  onValueChange={(v) => onUpdate('targetBpm', Array.isArray(v) ? v[0] : v)}
                   min={30}
                   max={300}
                   step={1}
@@ -59,15 +57,15 @@ export function SettingsPage() {
                 {soundTypes.map((sound) => (
                   <button
                     key={sound}
-                    onClick={() => setSelectedSound(sound)}
+                    onClick={() => onUpdate('soundType', sound)}
                     className={`w-full flex items-center justify-between p-4 rounded-lg font-bold min-h-[56px] transition-all ${
-                      selectedSound === sound
+                      settings.soundType === sound
                         ? "bg-primary-container text-on-primary-container"
                         : "bg-surface-variant text-on-surface-variant hover:bg-surface-bright"
                     }`}
                   >
                     <span>{sound}</span>
-                    {selectedSound === sound && (
+                    {settings.soundType === sound && (
                       <span className="text-on-primary-container">✓</span>
                     )}
                   </button>
@@ -88,8 +86,8 @@ export function SettingsPage() {
             </h2>
           </div>
           <Switch
-            checked={voiceEnabled}
-            onCheckedChange={setVoiceEnabled}
+            checked={settings.voiceEnabled}
+            onCheckedChange={(v) => onUpdate('voiceEnabled', v)}
             className="data-[state=checked]:bg-primary"
           />
         </div>
@@ -104,12 +102,12 @@ export function SettingsPage() {
                   <p className="text-[10px] text-outline mt-1">Trigger alert when cadence drifts</p>
                 </div>
                 <span className="text-2xl font-black text-tertiary font-heading">
-                  ±{deviation}<span className="text-sm font-medium ml-1">SPM</span>
+                  ±{settings.deviationThreshold}<span className="text-sm font-medium ml-1">SPM</span>
                 </span>
               </div>
               <Slider
-                value={[deviation]}
-                onValueChange={(v) => setDeviation(Array.isArray(v) ? v[0] : v)}
+                value={[settings.deviationThreshold]}
+                onValueChange={(v) => onUpdate('deviationThreshold', Array.isArray(v) ? v[0] : v)}
                 min={5}
                 max={20}
                 step={1}
@@ -131,12 +129,12 @@ export function SettingsPage() {
                   <p className="text-[10px] text-outline mt-1">Wait time between alerts</p>
                 </div>
                 <span className="text-2xl font-black text-on-surface font-heading">
-                  {cooldown}<span className="text-sm font-medium ml-1">sec</span>
+                  {settings.cooldownSeconds}<span className="text-sm font-medium ml-1">sec</span>
                 </span>
               </div>
               <Slider
-                value={[cooldown]}
-                onValueChange={(v) => setCooldown(Array.isArray(v) ? v[0] : v)}
+                value={[settings.cooldownSeconds]}
+                onValueChange={(v) => onUpdate('cooldownSeconds', Array.isArray(v) ? v[0] : v)}
                 min={10}
                 max={30}
                 step={1}
@@ -169,8 +167,8 @@ export function SettingsPage() {
                   Pause the session automatically when your cadence drops below this limit.
                 </p>
                 <Slider
-                  value={[autoPause]}
-                  onValueChange={(v) => setAutoPause(Array.isArray(v) ? v[0] : v)}
+                  value={[settings.autoPauseThreshold]}
+                  onValueChange={(v) => onUpdate('autoPauseThreshold', Array.isArray(v) ? v[0] : v)}
                   min={30}
                   max={100}
                   step={1}
@@ -181,7 +179,7 @@ export function SettingsPage() {
                 </div>
               </div>
               <div className="flex flex-col items-center justify-center bg-surface-variant rounded-2xl p-6 min-w-[140px] border border-outline-variant/50">
-                <span className="text-5xl font-black text-error font-heading">{autoPause}</span>
+                <span className="text-5xl font-black text-error font-heading">{settings.autoPauseThreshold}</span>
                 <span className="text-xs font-heading font-bold text-outline-variant uppercase">Threshold</span>
               </div>
             </div>

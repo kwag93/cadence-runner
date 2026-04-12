@@ -33,3 +33,4 @@ packages/mobile/.metro-health-check*
 
 # Ruby
 packages/mobile/vendor/
+.gstack/
