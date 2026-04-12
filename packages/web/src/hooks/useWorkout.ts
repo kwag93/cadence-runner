@@ -44,7 +44,35 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
   const deviationStreakRef = useRef<number>(0);
   const lowSpmStreakRef = useRef<number>(0);
   const settingsRef = useRef(settings);
-  useEffect(() => { settingsRef.current = settings; });
+  useEffect(() => {
+    const prev = settingsRef.current;
+    settingsRef.current = settings;
+    // 러닝 중 설정 변경 시 네이티브에 즉시 반영
+    if (state.isRunning) {
+      if (prev.hapticEnabled !== settings.hapticEnabled) {
+        postToNative({ type: 'set_haptic', enabled: settings.hapticEnabled });
+      }
+      if (prev.soundType !== settings.soundType) {
+        postToNative({ type: 'set_sound_type', value: settings.soundType });
+      }
+    }
+  }, [settings, state.isRunning]);
+
+  // Live Activity 업데이트: SPM, BPM, 메트로놈 상태 변경 시만 실행
+  // elapsedSeconds는 매초 바뀌므로 의존성에서 제외 — 전송 시점의 최신 값을 ref로 참조
+  const elapsedRef = useRef(state.elapsedSeconds);
+  elapsedRef.current = state.elapsedSeconds;
+
+  useEffect(() => {
+    if (!state.isRunning || state.currentSpm === 0) return;
+    postToNative({
+      type: 'update_live_activity',
+      elapsedSeconds: elapsedRef.current,
+      currentSpm: state.currentSpm,
+      targetBpm: state.targetBpm,
+      metronomeOn: state.metronomeOn,
+    });
+  }, [state.isRunning, state.currentSpm, state.targetBpm, state.metronomeOn]);
 
   // 타이머: isRunning && !isPaused 일 때만 카운트
   useEffect(() => {
@@ -55,63 +83,73 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     return () => clearInterval(timer);
   }, [state.isRunning, state.isPaused]);
 
-  // 네이티브 메시지 리스너 — 모든 로직을 콜백 내에서 처리
+  // 네이티브 메시지 리스너 — side effect는 updater 외부에서 실행
   useEffect(() => {
     return onNativeMessage((msg) => {
       switch (msg.type) {
-        case 'cadence':
-          setState(prev => {
-            if (!prev.isRunning) return prev;
+        case 'cadence': {
+          const prev = stateRef.current;
+          if (!prev.isRunning) return;
 
-            const deviation = msg.value - prev.targetBpm;
-            const absDev = Math.abs(deviation);
-            const now = Date.now();
-            const s = settingsRef.current;
+          const deviation = msg.value - prev.targetBpm;
+          const absDev = Math.abs(deviation);
+          const now = Date.now();
+          const s = settingsRef.current;
 
-            // SPM 샘플 수집
-            if (samplesRef.current.length === 0 ||
-                msg.timestamp - samplesRef.current[samplesRef.current.length - 1].timestamp >= 1000) {
-              samplesRef.current.push({ timestamp: msg.timestamp, spm: msg.value });
-            }
+          // SPM 샘플 수집
+          if (samplesRef.current.length === 0 ||
+              msg.timestamp - samplesRef.current[samplesRef.current.length - 1].timestamp >= 1000) {
+            samplesRef.current.push({ timestamp: msg.timestamp, spm: msg.value });
+          }
 
-            // 자동 일시정지 체크
-            if (msg.value > 0 && msg.value < s.autoPauseThreshold) {
-              lowSpmStreakRef.current++;
-              if (lowSpmStreakRef.current >= 3) {
-                lowSpmStreakRef.current = 0;
-                postToNative({ type: 'stop_metronome' });
-                postToNative({ type: 'speak', text: '자동 일시정지' });
-                return { ...prev, currentSpm: msg.value, deviation, isPaused: true, metronomeOn: false };
-              }
-            } else {
+          // 자동 일시정지 체크
+          let shouldAutoPause = false;
+          if (msg.value > 0 && msg.value < s.autoPauseThreshold) {
+            lowSpmStreakRef.current++;
+            if (lowSpmStreakRef.current >= 3) {
               lowSpmStreakRef.current = 0;
+              shouldAutoPause = true;
             }
+          } else {
+            lowSpmStreakRef.current = 0;
+          }
 
-            // 음성 알림 체크
-            if (s.voiceEnabled && !prev.isPaused && msg.value > 0) {
-              if (absDev > s.deviationThreshold) {
-                deviationStreakRef.current++;
-                if (deviationStreakRef.current >= DEVIATION_SUSTAINED_SECONDS &&
-                    now - lastAlertRef.current > s.cooldownSeconds * 1000) {
-                  const direction = deviation > 0 ? '빠릅니다' : '느립니다';
-                  postToNative({ type: 'speak', text: `케이던스가 ${absDev} ${direction}` });
-                  lastAlertRef.current = now;
-                  deviationStreakRef.current = 0;
-                }
-              } else {
+          // 음성 알림 체크
+          let voiceText: string | null = null;
+          if (!shouldAutoPause && s.voiceEnabled && !prev.isPaused && msg.value > 0) {
+            if (absDev > s.deviationThreshold) {
+              deviationStreakRef.current++;
+              if (deviationStreakRef.current >= DEVIATION_SUSTAINED_SECONDS &&
+                  now - lastAlertRef.current > s.cooldownSeconds * 1000) {
+                const direction = deviation > 0 ? '빠릅니다' : '느립니다';
+                voiceText = `케이던스가 ${absDev} ${direction}`;
+                lastAlertRef.current = now;
                 deviationStreakRef.current = 0;
               }
+            } else {
+              deviationStreakRef.current = 0;
             }
+          }
 
-            return { ...prev, currentSpm: msg.value, deviation };
-          });
+          // 순수 state 업데이트
+          if (shouldAutoPause) {
+            setState(p => ({ ...p, currentSpm: msg.value, deviation, isPaused: true, metronomeOn: false }));
+          } else {
+            setState(p => ({ ...p, currentSpm: msg.value, deviation }));
+          }
+
+          // side effect는 updater 외부에서 실행
+          if (shouldAutoPause) {
+            postToNative({ type: 'stop_metronome' });
+            postToNative({ type: 'speak', text: '자동 일시정지' });
+          }
+          if (voiceText) {
+            postToNative({ type: 'speak', text: voiceText });
+          }
           break;
+        }
         case 'metronome_state':
-          setState(prev => ({
-            ...prev,
-            metronomeOn: msg.playing,
-            targetBpm: msg.bpm,
-          }));
+          setState(p => ({ ...p, metronomeOn: msg.playing, targetBpm: msg.bpm }));
           break;
       }
     });
@@ -138,16 +176,21 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     postToNative({ type: 'set_sound_type', value: settingsRef.current.soundType });
     postToNative({ type: 'start_workout' });
     postToNative({ type: 'start_metronome' });
+    postToNative({ type: 'start_live_activity', targetBpm: bpm });
   }, []);
+
+  // ref로 최신 state 참조 — stopWorkout이 매초 재생성되지 않도록
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   const stopWorkout = useCallback((): WorkoutSession | null => {
     const samples = [...samplesRef.current];
-    const elapsed = state.elapsedSeconds;
-    const target = state.targetBpm;
+    const { elapsedSeconds: elapsed, targetBpm: target } = stateRef.current;
 
     setState(prev => ({ ...prev, isRunning: false, isPaused: false, metronomeOn: false }));
     postToNative({ type: 'stop_metronome' });
     postToNative({ type: 'stop_workout' });
+    postToNative({ type: 'end_live_activity' });
 
     const spmValues = samples.map(s => s.spm).filter(v => v > 0);
     if (spmValues.length === 0) return null;
@@ -169,7 +212,6 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
       onTargetRatio: onTarget / spmValues.length,
     };
 
-    // 운동 완료 음성 요약
     if (settingsRef.current.voiceEnabled) {
       const min = Math.floor(elapsed / 60);
       const sec = elapsed % 60;
@@ -183,7 +225,6 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
       });
     }
 
-    // HealthKit에 운동 저장
     postToNative({
       type: 'save_workout',
       startDate: session.startedAt,
@@ -193,7 +234,7 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     });
 
     return session;
-  }, [state.elapsedSeconds, state.targetBpm]);
+  }, []);
 
   const resumeWorkout = useCallback(() => {
     setState(prev => ({ ...prev, isPaused: false, metronomeOn: true }));
@@ -211,6 +252,10 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     postToNative({ type: 'set_target_bpm', value: bpm });
   }, []);
 
+  const speak = useCallback((text: string) => {
+    postToNative({ type: 'speak', text });
+  }, []);
+
   return {
     ...state,
     startWorkout,
@@ -218,5 +263,6 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     resumeWorkout,
     setMetronome,
     setTargetBpm,
+    speak,
   };
 }

@@ -18,7 +18,10 @@ export type WebMessage =
   | { type: 'set_haptic'; enabled: boolean }
   | { type: 'set_sound_type'; value: string }
   | { type: 'request_health_auth' }
-  | { type: 'save_workout'; startDate: string; endDate: string; durationSeconds: number; avgCadence: number };
+  | { type: 'save_workout'; startDate: string; endDate: string; durationSeconds: number; avgCadence: number }
+  | { type: 'start_live_activity'; targetBpm: number }
+  | { type: 'update_live_activity'; elapsedSeconds: number; currentSpm: number; targetBpm: number; metronomeOn: boolean }
+  | { type: 'end_live_activity' };
 
 export type BridgeError = {
   type: 'error';

@@ -10,6 +10,7 @@ import NativeMetronome from './specs/NativeMetronome';
 import NativeCadence from './specs/NativeCadence';
 import NativeVoiceAlert from './specs/NativeVoiceAlert';
 import NativeHealthKit from './specs/NativeHealthKit';
+import NativeLiveActivity from './specs/NativeLiveActivity';
 
 const SURFACE_BG = '#070d1f';
 
@@ -51,13 +52,17 @@ function AppContent() {
   useEffect(() => {
     const interval = setInterval(() => {
       if (!workoutActiveRef.current) return;
-      const spm = NativeCadence.getCurrentSpm();
-      const msg = JSON.stringify({
-        type: 'cadence',
-        value: Math.round(spm),
-        timestamp: Date.now(),
-      });
-      webViewRef.current?.postMessage(msg);
+      try {
+        const spm = NativeCadence.getCurrentSpm();
+        const msg = JSON.stringify({
+          type: 'cadence',
+          value: Math.round(spm),
+          timestamp: Date.now(),
+        });
+        webViewRef.current?.postMessage(msg);
+      } catch {
+        // 네이티브 모듈 호출 실패 시 무시 — 다음 tick에서 재시도
+      }
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -131,6 +136,22 @@ function AppContent() {
       case 'request_health_auth':
         NativeHealthKit.requestAuthorization();
         console.log('[Bridge] request_health_auth');
+        break;
+      case 'start_live_activity':
+        NativeLiveActivity?.startActivity(msg.targetBpm);
+        console.log('[Bridge] start_live_activity');
+        break;
+      case 'update_live_activity':
+        NativeLiveActivity?.updateActivity(
+          msg.elapsedSeconds,
+          msg.currentSpm,
+          msg.targetBpm,
+          msg.metronomeOn,
+        );
+        break;
+      case 'end_live_activity':
+        NativeLiveActivity?.endActivity();
+        console.log('[Bridge] end_live_activity');
         break;
       case 'save_workout':
         // 첫 저장 시 HealthKit 권한 요청
