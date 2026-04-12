@@ -3,6 +3,7 @@
 // Native → WebView
 export type NativeMessage =
   | { type: 'cadence'; value: number; timestamp: number }
+  | { type: 'heart_rate'; bpm: number; timestamp: number }
   | { type: 'metronome_state'; playing: boolean; bpm: number }
   | { type: 'health_ready'; available: boolean }
   | BridgeError;

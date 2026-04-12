@@ -21,6 +21,7 @@ interface WorkoutState {
   targetBpm: number;
   metronomeOn: boolean;
   deviation: number;
+  heartRate: number;
 }
 
 interface UseWorkoutOptions {
@@ -36,6 +37,7 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     targetBpm: settings.targetBpm,
     metronomeOn: false,
     deviation: 0,
+    heartRate: 0,
   });
 
   const samplesRef = useRef<SpmSample[]>([]);
@@ -148,6 +150,9 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
           }
           break;
         }
+        case 'heart_rate':
+          setState(p => ({ ...p, heartRate: msg.bpm }));
+          break;
         case 'metronome_state':
           setState(p => ({ ...p, metronomeOn: msg.playing, targetBpm: msg.bpm }));
           break;
@@ -170,6 +175,7 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
       targetBpm: bpm,
       metronomeOn: true,
       deviation: 0,
+      heartRate: 0,
     });
     postToNative({ type: 'set_target_bpm', value: bpm });
     postToNative({ type: 'set_haptic', enabled: settingsRef.current.hapticEnabled });

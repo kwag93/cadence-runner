@@ -10,6 +10,7 @@ export interface Spec extends TurboModule {
     avgCadence: number,
   ): void;
   isAvailable(): boolean;
+  getLatestHeartRate(): number;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('NativeHealthKit');

@@ -35,6 +35,10 @@
     return @([HealthKitEngine isAvailable]);
 }
 
+- (NSNumber *)getLatestHeartRate {
+    return @([engine getLatestHeartRate]);
+}
+
 + (NSString *)moduleName {
     return @"NativeHealthKit";
 }

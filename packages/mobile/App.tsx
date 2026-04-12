@@ -48,20 +48,32 @@ function AppContent() {
   // HealthKit 권한 요청은 save_workout 시 자동 처리
   const healthAuthRequestedRef = useRef(false);
 
-  // cadence polling: 1초마다 SPM을 WebView에 전달
+  // cadence + heart rate polling: 1초마다 SPM과 심박수를 WebView에 전달
   useEffect(() => {
     const interval = setInterval(() => {
       if (!workoutActiveRef.current) return;
       try {
         const spm = NativeCadence.getCurrentSpm();
-        const msg = JSON.stringify({
+        webViewRef.current?.postMessage(JSON.stringify({
           type: 'cadence',
           value: Math.round(spm),
           timestamp: Date.now(),
-        });
-        webViewRef.current?.postMessage(msg);
+        }));
       } catch {
         // 네이티브 모듈 호출 실패 시 무시 — 다음 tick에서 재시도
+      }
+      // 심박수는 5초마다 (HealthKit 업데이트 주기에 맞춤)
+      try {
+        const hr = NativeHealthKit.getLatestHeartRate();
+        if (hr > 0) {
+          webViewRef.current?.postMessage(JSON.stringify({
+            type: 'heart_rate',
+            bpm: Math.round(hr),
+            timestamp: Date.now(),
+          }));
+        }
+      } catch {
+        // Apple Watch 미연결 시 무시
       }
     }, 1000);
     return () => clearInterval(interval);

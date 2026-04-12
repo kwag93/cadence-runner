@@ -4,7 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Flag, Music, Play, StopCircle, RotateCcw, Minus, Plus } from "lucide-react";
+import { Flag, Music, Play, StopCircle, RotateCcw, Minus, Plus, Heart } from "lucide-react";
 import { useWorkout } from "@/hooks/useWorkout";
 import { formatTime } from "@/lib/format";
 import { BPM_MIN, BPM_MAX } from "@cadence-runner/shared";
@@ -18,7 +18,7 @@ interface ActiveRunProps {
 export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
   const {
     isRunning, isPaused, elapsedSeconds, currentSpm, targetBpm,
-    metronomeOn, deviation,
+    metronomeOn, deviation, heartRate,
     startWorkout, stopWorkout, resumeWorkout, setMetronome, setTargetBpm, speak,
   } = useWorkout({ settings });
 
@@ -110,15 +110,17 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-2 w-full mt-3">
+      <div className={`grid ${heartRate > 0 ? 'grid-cols-4' : 'grid-cols-3'} gap-2 w-full mt-3`}>
         {[
           { label: "시간", value: formatTime(elapsedSeconds) },
           { label: "목표", value: String(targetBpm), unit: "BPM" },
           { label: "편차", value: isRunning ? `${deviation > 0 ? '+' : ''}${deviation}` : "0", unit: "SPM" },
+          ...(heartRate > 0 ? [{ label: "심박", value: String(heartRate), unit: "BPM", icon: true }] : []),
         ].map((stat) => (
           <Card key={stat.label} className="bg-surface-container-low border-transparent">
             <CardContent className="p-3 flex flex-col items-center">
-              <span className="text-xs font-heading font-bold text-on-surface-variant uppercase mb-0.5">
+              <span className="text-xs font-heading font-bold text-on-surface-variant uppercase mb-0.5 flex items-center gap-1">
+                {'icon' in stat && <Heart className="w-3 h-3 text-red-500" />}
                 {stat.label}
               </span>
               <span className="text-lg font-black font-heading">

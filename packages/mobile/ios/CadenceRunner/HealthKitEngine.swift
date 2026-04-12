@@ -22,6 +22,7 @@ import HealthKit
 
         let readTypes: Set<HKObjectType> = [
             HKObjectType.workoutType(),
+            HKObjectType.quantityType(forIdentifier: .heartRate)!,
         ]
 
         store.requestAuthorization(toShare: writeTypes, read: readTypes) { [weak self] success, error in
@@ -32,6 +33,39 @@ import HealthKit
             self?._isAuthorized = success
             print("[HealthKit] Authorization: \(success ? "granted" : "unknown")")
         }
+    }
+
+    // MARK: - 심박수 읽기
+
+    /// HealthKit에서 최근 심박수를 읽어옴 (Apple Watch에서 동기화된 데이터)
+    @objc func getLatestHeartRate() -> Double {
+        guard HKHealthStore.isHealthDataAvailable() else { return -1 }
+        guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return -1 }
+
+        var result: Double = -1
+        let semaphore = DispatchSemaphore(value: 0)
+
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+        // 최근 5분 이내의 데이터만
+        let fiveMinAgo = Date().addingTimeInterval(-300)
+        let predicate = HKQuery.predicateForSamples(withStart: fiveMinAgo, end: Date(), options: .strictStartDate)
+
+        let query = HKSampleQuery(
+            sampleType: heartRateType,
+            predicate: predicate,
+            limit: 1,
+            sortDescriptors: [sortDescriptor]
+        ) { _, samples, error in
+            if let sample = samples?.first as? HKQuantitySample {
+                let bpm = sample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
+                result = bpm
+            }
+            semaphore.signal()
+        }
+
+        store.execute(query)
+        _ = semaphore.wait(timeout: .now() + 2)
+        return result
     }
 
     // MARK: - 운동 세션 저장
