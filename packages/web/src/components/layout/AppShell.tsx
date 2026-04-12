@@ -46,7 +46,7 @@ export function AppShell() {
           />
         )}
         {activeTab === "stats" && <Stats sessions={sessions} settings={settings} />}
-        {activeTab === "settings" && <SettingsPage settings={settings} onUpdate={updateSetting} />}
+        {activeTab === "settings" && <SettingsPage settings={settings} onUpdate={updateSetting} sessions={sessions} />}
       </main>
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>

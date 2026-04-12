@@ -1,9 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Timer, Mic, PauseCircle, Vibrate } from "lucide-react";
+import { Timer, Mic, PauseCircle, Vibrate, Lightbulb } from "lucide-react";
 import { BPM_MIN, BPM_MAX } from "@cadence-runner/shared";
-import type { UserSettings, SoundType } from "@cadence-runner/shared";
+import type { UserSettings, SoundType, WorkoutSession } from "@cadence-runner/shared";
 
 const soundTypes: SoundType[] = ["Click", "Woodblock", "Digital"];
 const soundTypeLabels: Record<SoundType, string> = {
@@ -15,11 +15,68 @@ const soundTypeLabels: Record<SoundType, string> = {
 interface SettingsPageProps {
   settings: UserSettings;
   onUpdate: <K extends keyof UserSettings>(key: K, value: UserSettings[K]) => void;
+  sessions: WorkoutSession[];
 }
 
-export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
+export function SettingsPage({ settings, onUpdate, sessions }: SettingsPageProps) {
+  // 자연 케이던스 기반 목표 추천 (3회 이상 러닝 데이터 필요)
+  const naturalCadence = sessions.length >= 3
+    ? Math.round(sessions.slice(0, 5).reduce((a, s) => a + s.avgSpm, 0) / Math.min(sessions.length, 5))
+    : 0;
+  const recommended5 = naturalCadence > 0 ? Math.round(naturalCadence * 1.05) : 0;
+  const recommended10 = naturalCadence > 0 ? Math.round(naturalCadence * 1.10) : 0;
+
   return (
     <div className="max-w-3xl mx-auto px-4 md:px-8 space-y-8">
+      {/* 과학적 목표 추천 — 3회 이상 러닝 후 표시 */}
+      {naturalCadence > 0 && (
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Lightbulb className="w-6 h-6 text-secondary" />
+            <h2 className="text-2xl font-bold font-heading tracking-tight text-on-surface uppercase">
+              목표 추천
+            </h2>
+          </div>
+          <Card className="bg-secondary/10 border-secondary/20">
+            <CardContent className="p-6">
+              <p className="text-sm text-on-surface-variant mb-4">
+                최근 러닝 평균 <span className="font-bold text-on-surface">{naturalCadence} SPM</span> 기준,
+                연구에 따르면 <span className="font-bold text-secondary">5~10% 증가</span>가 부상 예방에 효과적입니다.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => onUpdate('targetBpm', recommended5)}
+                  className={`flex-1 p-3 rounded-xl font-bold text-center transition-all ${
+                    settings.targetBpm === recommended5
+                      ? 'bg-secondary text-on-secondary'
+                      : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                  }`}
+                >
+                  <span className="text-xs uppercase tracking-wider block mb-1">+5%</span>
+                  <span className="text-xl font-black">{recommended5}</span>
+                  <span className="text-xs ml-1">SPM</span>
+                </button>
+                <button
+                  onClick={() => onUpdate('targetBpm', recommended10)}
+                  className={`flex-1 p-3 rounded-xl font-bold text-center transition-all ${
+                    settings.targetBpm === recommended10
+                      ? 'bg-secondary text-on-secondary'
+                      : 'bg-surface-container text-on-surface hover:bg-surface-container-high'
+                  }`}
+                >
+                  <span className="text-xs uppercase tracking-wider block mb-1">+10%</span>
+                  <span className="text-xl font-black">{recommended10}</span>
+                  <span className="text-xs ml-1">SPM</span>
+                </button>
+              </div>
+              <p className="text-xs text-outline mt-3">
+                출처: PMC 2025 시스템적 리뷰 — 케이던스 5~10% 증가가 지면반력, 관절 부하 감소
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
       {/* Metronome */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
