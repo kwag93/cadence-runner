@@ -149,4 +149,4 @@ proj.save
 - MetronomeEngine은 DispatchSourceTimer 기반 (1~5ms 지터). 프로덕션에서는 AVAudioSourceNode 렌더 콜백으로 교체 필요.
 - Production URL이 iOS에서 아직 미설정 (번들 HTML 경로 결정 필요).
 - `originWhitelist={['*']}`은 개발용. 프로덕션에서 제한 필요.
-- 심박수는 Apple Watch 연동 시에만 사용 가능. HealthKit semaphore 방식은 메인 스레드 블로킹 위험 — 향후 비동기 콜백으로 전환 권장.
+- 심박수는 Apple Watch 연동 시에만 사용 가능. 캐시 기반 비동기 방식으로 구현됨 (5초 간격 백그라운드 쿼리).
