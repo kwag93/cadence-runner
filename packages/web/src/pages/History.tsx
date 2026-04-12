@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Timer, Zap, ArrowLeft, Trash2, ChevronRight } from "lucide-react";
+import { Timer, Zap, ArrowLeft, Trash2, ChevronRight, Heart } from "lucide-react";
 import { formatTime, formatDate, formatTimeOfDay } from "@/lib/format";
 import type { WorkoutSession } from "@cadence-runner/shared";
 
@@ -163,6 +163,28 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
             <p className="text-3xl font-bold text-on-surface">{s.targetBpm}</p>
           </CardContent>
         </Card>
+
+        {s.avgHeartRate && (
+          <Card className="col-span-2 bg-surface-container-high border-red-500/20">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Heart className="w-5 h-5 text-red-500" />
+                <div>
+                  <p className="text-on-surface-variant font-heading text-xs uppercase tracking-widest">
+                    평균 심박수
+                  </p>
+                  <p className="text-2xl font-bold text-on-surface">{s.avgHeartRate} <span className="text-sm text-on-surface-variant">BPM</span></p>
+                </div>
+              </div>
+              {s.maxHeartRate && (
+                <div className="text-right">
+                  <p className="text-xs text-on-surface-variant">최고</p>
+                  <p className="font-bold text-on-surface">{s.maxHeartRate} BPM</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="col-span-2 bg-surface-container-highest border-primary/30">
           <CardContent className="p-6 flex items-center justify-between">

@@ -6,6 +6,12 @@ export interface SpmSample {
   spm: number;
 }
 
+export interface HeartRateSample {
+  /** Unix ms */
+  timestamp: number;
+  bpm: number;
+}
+
 export interface WorkoutSession {
   id: string;
   startedAt: string;   // ISO 8601
@@ -18,6 +24,10 @@ export interface WorkoutSession {
   samples: SpmSample[];
   /** target 대비 ±threshold 이내 비율 (0-1) */
   onTargetRatio: number;
+  /** 심박수 데이터 (Apple Watch 연결 시) */
+  avgHeartRate?: number;
+  maxHeartRate?: number;
+  heartRateSamples?: HeartRateSample[];
 }
 
 export type SoundType = 'Click' | 'Woodblock' | 'Digital';

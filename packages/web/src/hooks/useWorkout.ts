@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { UserSettings, WorkoutSession, SpmSample } from '@cadence-runner/shared';
+import type { UserSettings, WorkoutSession, SpmSample, HeartRateSample } from '@cadence-runner/shared';
 import { DEVIATION_SUSTAINED_SECONDS } from '@cadence-runner/shared';
 import { postToNative, onNativeMessage } from '@/lib/bridge';
 
@@ -41,6 +41,7 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
   });
 
   const samplesRef = useRef<SpmSample[]>([]);
+  const hrSamplesRef = useRef<HeartRateSample[]>([]);
   const startTimeRef = useRef<string>('');
   const lastAlertRef = useRef<number>(0);
   const deviationStreakRef = useRef<number>(0);
@@ -151,6 +152,9 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
           break;
         }
         case 'heart_rate':
+          if (stateRef.current.isRunning && msg.bpm > 0) {
+            hrSamplesRef.current.push({ timestamp: msg.timestamp, bpm: msg.bpm });
+          }
           setState(p => ({ ...p, heartRate: msg.bpm }));
           break;
         case 'metronome_state':
@@ -163,6 +167,7 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
   const startWorkout = useCallback(() => {
     const bpm = settingsRef.current.targetBpm;
     samplesRef.current = [];
+    hrSamplesRef.current = [];
     startTimeRef.current = new Date().toISOString();
     lastAlertRef.current = 0;
     deviationStreakRef.current = 0;
@@ -191,9 +196,10 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
 
   const stopWorkout = useCallback((): WorkoutSession | null => {
     const samples = [...samplesRef.current];
+    const hrSamples = [...hrSamplesRef.current];
     const { elapsedSeconds: elapsed, targetBpm: target } = stateRef.current;
 
-    setState(prev => ({ ...prev, isRunning: false, isPaused: false, metronomeOn: false }));
+    setState(prev => ({ ...prev, isRunning: false, isPaused: false, metronomeOn: false, heartRate: 0 }));
     postToNative({ type: 'stop_metronome' });
     postToNative({ type: 'stop_workout' });
     postToNative({ type: 'end_live_activity' });
@@ -204,6 +210,14 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     const avgSpm = Math.round(spmValues.reduce((a, b) => a + b, 0) / spmValues.length);
     const threshold = settingsRef.current.deviationThreshold;
     const onTarget = spmValues.filter(v => Math.abs(v - target) <= threshold).length;
+
+    // 심박수 통계 (Apple Watch 데이터가 있을 때만)
+    const hrValues = hrSamples.map(s => s.bpm).filter(v => v > 0);
+    const hrStats = hrValues.length > 0 ? {
+      avgHeartRate: Math.round(hrValues.reduce((a, b) => a + b, 0) / hrValues.length),
+      maxHeartRate: Math.max(...hrValues),
+      heartRateSamples: hrSamples,
+    } : {};
 
     const session: WorkoutSession = {
       id: generateId(),
@@ -216,6 +230,7 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
       minSpm: Math.min(...spmValues),
       samples,
       onTargetRatio: onTarget / spmValues.length,
+      ...hrStats,
     };
 
     if (settingsRef.current.voiceEnabled) {
@@ -225,9 +240,10 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
         ? `${min}분 ${sec > 0 ? `${sec}초` : ''}`
         : `${sec}초`;
       const onTargetPct = Math.round(session.onTargetRatio * 100);
+      const hrText = session.avgHeartRate ? ` 평균 심박수 ${session.avgHeartRate}.` : '';
       postToNative({
         type: 'speak',
-        text: `운동 완료. ${timeText}, 평균 케이던스 ${avgSpm}. 목표 달성률 ${onTargetPct}퍼센트.`,
+        text: `운동 완료. ${timeText}, 평균 케이던스 ${avgSpm}.${hrText} 목표 달성률 ${onTargetPct}퍼센트.`,
       });
     }
 

@@ -28,6 +28,12 @@ export function Stats({ sessions, settings }: StatsProps) {
     (sessions.reduce((a, s) => a + s.onTargetRatio, 0) / sessions.length) * 100
   );
 
+  // 심박수 통계 (Apple Watch 데이터가 있는 세션만)
+  const hrSessions = sessions.filter(s => s.avgHeartRate && s.avgHeartRate > 0);
+  const avgHeartRate = hrSessions.length > 0
+    ? Math.round(hrSessions.reduce((a, s) => a + (s.avgHeartRate ?? 0), 0) / hrSessions.length)
+    : 0;
+
   // 최근 5개 vs 이전 비교 (트렌드)
   const recentAvg = sessions.length >= 5
     ? Math.round(sessions.slice(0, 5).reduce((a, s) => a + s.avgSpm, 0) / 5)
@@ -69,6 +75,7 @@ export function Stats({ sessions, settings }: StatsProps) {
           { label: "최고 케이던스", value: String(maxSpm), unit: "SPM", color: "border-l-secondary" },
           { label: "최장 러닝", value: formatTime(longestRun), color: "border-l-tertiary" },
           { label: "총 시간", value: formatTime(totalSeconds), color: "border-l-primary" },
+          ...(avgHeartRate > 0 ? [{ label: "평균 심박수", value: String(avgHeartRate), unit: "BPM", color: "border-l-red-500" }] : []),
         ].map((pb) => (
           <Card key={pb.label} className={`bg-surface-container-low border-0 border-l-2 ${pb.color}`}>
             <CardContent className="p-5">
