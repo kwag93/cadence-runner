@@ -39,6 +39,14 @@
     return @([engine getLatestHeartRate]);
 }
 
+- (void)startHeartRateObserver {
+    [engine startHeartRateObserver];
+}
+
+- (void)stopHeartRateObserver {
+    [engine stopHeartRateObserver];
+}
+
 + (NSString *)moduleName {
     return @"NativeHealthKit";
 }

@@ -102,12 +102,14 @@ function AppContent() {
       case 'start_workout':
         workoutActiveRef.current = true;
         NativeCadence.start();
+        NativeHealthKit.startHeartRateObserver();
         console.log('[Bridge] start_workout');
         break;
       case 'stop_workout':
         workoutActiveRef.current = false;
         NativeMetronome.stop();
         NativeCadence.stop();
+        NativeHealthKit.stopHeartRateObserver();
         console.log('[Bridge] stop_workout');
         break;
       case 'set_target_bpm': {

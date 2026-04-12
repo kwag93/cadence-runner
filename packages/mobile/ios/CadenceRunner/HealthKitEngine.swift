@@ -37,16 +37,49 @@ import HealthKit
 
     // MARK: - 심박수 읽기
 
-    /// HealthKit에서 최근 심박수를 읽어옴 (Apple Watch에서 동기화된 데이터)
+    private let hrLock = NSLock()
+    private var _cachedHeartRate: Double = -1
+    private var hrObserverStarted = false
+
+    /// 캐시된 심박수를 반환 (블로킹 없음)
     @objc func getLatestHeartRate() -> Double {
-        guard HKHealthStore.isHealthDataAvailable() else { return -1 }
-        guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return -1 }
+        hrLock.lock()
+        defer { hrLock.unlock() }
+        return _cachedHeartRate
+    }
 
-        var result: Double = -1
-        let semaphore = DispatchSemaphore(value: 0)
+    /// 심박수 관찰 시작 — 운동 시작 시 호출
+    @objc func startHeartRateObserver() {
+        guard !hrObserverStarted else { return }
+        guard HKHealthStore.isHealthDataAvailable() else { return }
+        guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return }
+        hrObserverStarted = true
 
+        // 초기 쿼리 + 5초마다 업데이트
+        fetchLatestHeartRate(heartRateType)
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
+        timer.schedule(deadline: .now() + 5, repeating: 5)
+        timer.setEventHandler { [weak self] in
+            self?.fetchLatestHeartRate(heartRateType)
+        }
+        timer.resume()
+        hrTimer = timer
+    }
+
+    private var hrTimer: DispatchSourceTimer?
+
+    /// 심박수 관찰 중지
+    @objc func stopHeartRateObserver() {
+        hrTimer?.cancel()
+        hrTimer = nil
+        hrObserverStarted = false
+        hrLock.lock()
+        _cachedHeartRate = -1
+        hrLock.unlock()
+    }
+
+    private func fetchLatestHeartRate(_ heartRateType: HKQuantityType) {
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-        // 최근 5분 이내의 데이터만
         let fiveMinAgo = Date().addingTimeInterval(-300)
         let predicate = HKQuery.predicateForSamples(withStart: fiveMinAgo, end: Date(), options: .strictStartDate)
 
@@ -55,17 +88,19 @@ import HealthKit
             predicate: predicate,
             limit: 1,
             sortDescriptors: [sortDescriptor]
-        ) { _, samples, error in
+        ) { [weak self] _, samples, _ in
+            guard let self = self else { return }
+            let bpm: Double
             if let sample = samples?.first as? HKQuantitySample {
-                let bpm = sample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
-                result = bpm
+                bpm = sample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
+            } else {
+                bpm = -1
             }
-            semaphore.signal()
+            self.hrLock.lock()
+            self._cachedHeartRate = bpm
+            self.hrLock.unlock()
         }
-
         store.execute(query)
-        _ = semaphore.wait(timeout: .now() + 2)
-        return result
     }
 
     // MARK: - 운동 세션 저장

@@ -11,6 +11,8 @@ export interface Spec extends TurboModule {
   ): void;
   isAvailable(): boolean;
   getLatestHeartRate(): number;
+  startHeartRateObserver(): void;
+  stopHeartRateObserver(): void;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('NativeHealthKit');
