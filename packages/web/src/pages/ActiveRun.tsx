@@ -1,3 +1,4 @@
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -5,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Flag, Music, Play, StopCircle, RotateCcw } from "lucide-react";
 import { useWorkout } from "@/hooks/useWorkout";
 import { formatTime } from "@/lib/format";
+import { postToNative } from "@/lib/bridge";
 import type { UserSettings, WorkoutSession } from "@cadence-runner/shared";
 
 interface ActiveRunProps {
@@ -18,6 +20,33 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
     metronomeOn, deviation,
     startWorkout, stopWorkout, resumeWorkout, setMetronome,
   } = useWorkout({ settings });
+
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+
+  // 카운트다운 클린업
+  useEffect(() => {
+    return () => clearInterval(countdownRef.current);
+  }, []);
+
+  const handleStart = useCallback(() => {
+    setCountdown(3);
+    postToNative({ type: 'speak', text: '3' });
+
+    let count = 3;
+    countdownRef.current = setInterval(() => {
+      count--;
+      if (count > 0) {
+        setCountdown(count);
+        postToNative({ type: 'speak', text: String(count) });
+      } else {
+        clearInterval(countdownRef.current);
+        setCountdown(null);
+        postToNative({ type: 'speak', text: '시작!' });
+        startWorkout();
+      }
+    }, 1000);
+  }, [startWorkout]);
 
   const handleStop = () => {
     const session = stopWorkout();
@@ -34,39 +63,47 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
       {/* Elapsed Time */}
       <div className="w-full flex flex-col items-center mt-4">
         <Badge variant="outline" className="mb-4 bg-surface-container-high border-outline-variant/30 text-on-surface-variant font-heading font-bold tracking-wider text-sm px-4 py-1.5 rounded-full">
-          {isPaused ? 'PAUSED' : isRunning ? 'ELAPSED TIME' : 'READY'}
+          {countdown !== null ? 'GET READY' : isPaused ? 'PAUSED' : isRunning ? 'ELAPSED TIME' : 'READY'}
         </Badge>
         <div className={`text-5xl font-black font-heading tracking-tighter ${isPaused ? 'text-tertiary animate-pulse' : 'text-on-surface'}`}>
-          {formatTime(elapsedSeconds)}
+          {countdown !== null ? '' : formatTime(elapsedSeconds)}
         </div>
       </div>
 
-      {/* Hero SPM */}
+      {/* Hero SPM / Countdown */}
       <div className="relative w-full max-w-sm aspect-square flex flex-col items-center justify-center mt-6">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className={`w-64 h-64 border-2 border-primary/20 rounded-full ${isRunning && !isPaused ? 'active-pulse' : ''}`} />
           <div className="absolute w-80 h-80 border border-primary/10 rounded-full" />
         </div>
         <div className="z-10 flex flex-col items-center">
-          <div className="flex items-start">
-            <span className="text-[140px] font-black font-heading leading-none text-primary glow-emerald tracking-tighter">
-              {displaySpm}
+          {countdown !== null ? (
+            <span className="text-[180px] font-black font-heading leading-none text-primary glow-emerald tracking-tighter animate-pulse">
+              {countdown}
             </span>
-            {isRunning && deviation !== 0 && (
-              <Badge className="bg-primary/20 text-primary border-primary/30 mt-8 ml-2 text-lg font-bold">
-                {deviationSign}{deviation}
-              </Badge>
-            )}
-          </div>
-          <div className="flex flex-col items-center -mt-4">
-            <span className="font-heading text-xl font-bold text-primary tracking-[0.2em] uppercase">
-              SPM
-            </span>
-            <Badge variant="outline" className="mt-4 bg-surface-container-low border-outline-variant/20 text-on-surface-variant rounded-full gap-2">
-              <Flag className="w-3 h-3" />
-              Target: {targetBpm} SPM
-            </Badge>
-          </div>
+          ) : (
+            <>
+              <div className="flex items-start">
+                <span className="text-[140px] font-black font-heading leading-none text-primary glow-emerald tracking-tighter">
+                  {displaySpm}
+                </span>
+                {isRunning && deviation !== 0 && (
+                  <Badge className="bg-primary/20 text-primary border-primary/30 mt-8 ml-2 text-lg font-bold">
+                    {deviationSign}{deviation}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex flex-col items-center -mt-4">
+                <span className="font-heading text-xl font-bold text-primary tracking-[0.2em] uppercase">
+                  SPM
+                </span>
+                <Badge variant="outline" className="mt-4 bg-surface-container-low border-outline-variant/20 text-on-surface-variant rounded-full gap-2">
+                  <Flag className="w-3 h-3" />
+                  Target: {targetBpm} SPM
+                </Badge>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -117,7 +154,15 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
       </Card>
 
       {/* Start / Stop / Resume Buttons */}
-      {isPaused ? (
+      {countdown !== null ? (
+        <Button
+          disabled
+          size="lg"
+          className="w-full mt-10 bg-surface-container text-on-surface-variant font-black font-heading py-6 rounded-3xl text-xl tracking-widest uppercase h-auto opacity-60"
+        >
+          STARTING...
+        </Button>
+      ) : isPaused ? (
         <div className="w-full mt-10 flex gap-3">
           <Button
             onClick={resumeWorkout}
@@ -149,7 +194,7 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
         </Button>
       ) : (
         <Button
-          onClick={startWorkout}
+          onClick={handleStart}
           size="lg"
           className="w-full mt-10 bg-gradient-to-br from-primary to-primary-container text-on-primary font-black font-heading py-6 rounded-3xl text-xl tracking-widest uppercase shadow-lg shadow-primary/20 active:scale-[0.98] h-auto"
         >

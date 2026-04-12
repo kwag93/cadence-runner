@@ -146,7 +146,7 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     const threshold = settingsRef.current.deviationThreshold;
     const onTarget = spmValues.filter(v => Math.abs(v - target) <= threshold).length;
 
-    return {
+    const session: WorkoutSession = {
       id: crypto.randomUUID(),
       startedAt: startTimeRef.current,
       endedAt: new Date().toISOString(),
@@ -158,6 +158,22 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
       samples,
       onTargetRatio: onTarget / spmValues.length,
     };
+
+    // 운동 완료 음성 요약
+    if (settingsRef.current.voiceEnabled) {
+      const min = Math.floor(elapsed / 60);
+      const sec = elapsed % 60;
+      const timeText = min > 0
+        ? `${min}분 ${sec > 0 ? `${sec}초` : ''}`
+        : `${sec}초`;
+      const onTargetPct = Math.round(session.onTargetRatio * 100);
+      postToNative({
+        type: 'speak',
+        text: `운동 완료. ${timeText}, 평균 케이던스 ${avgSpm}. 목표 달성률 ${onTargetPct}퍼센트.`,
+      });
+    }
+
+    return session;
   }, [state.elapsedSeconds, state.targetBpm]);
 
   const resumeWorkout = useCallback(() => {

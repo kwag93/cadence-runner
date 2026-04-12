@@ -6,10 +6,15 @@ import Foundation
     private var _isRunning = false
     private var lastStepCount: Int = 0
     private var lastTimestamp: Date = Date()
+    private let lock = NSLock()
 
     private var _currentSpm: Double = 0
 
-    @objc var currentSpm: Double { _currentSpm }
+    @objc var currentSpm: Double {
+        lock.lock()
+        defer { lock.unlock() }
+        return _currentSpm
+    }
 
     @objc static var isAvailable: Bool {
         CMPedometer.isStepCountingAvailable()
@@ -42,7 +47,9 @@ import Foundation
             self.lastStepCount = currentSteps
             self.lastTimestamp = now
 
+            self.lock.lock()
             self._currentSpm = spm
+            self.lock.unlock()
         }
     }
 

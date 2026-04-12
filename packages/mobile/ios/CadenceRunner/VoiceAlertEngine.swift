@@ -12,13 +12,8 @@ import AVFoundation
     @objc func speak(_ text: String) {
         guard !synthesizer.isSpeaking else { return }
 
-        do {
-            try AVAudioSession.sharedInstance().setCategory(
-                .playback, mode: .voicePrompt, options: [.duckOthers]
-            )
-        } catch {
-            print("[VoiceAlertEngine] audio session error: \(error)")
-        }
+        // MetronomeEngine이 설정한 .playback 세션을 유지.
+        // voicePrompt 모드로 변경하지 않음 — 메트로놈 끊김 방지.
 
         let utterance = AVSpeechUtterance(string: text)
         utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 1.1
@@ -33,7 +28,6 @@ import AVFoundation
 
     @objc func stop() {
         synthesizer.stopSpeaking(at: .immediate)
-        SpeechDelegate.restoreAudioSession()
     }
 }
 
@@ -41,16 +35,6 @@ import AVFoundation
 // Swift-ObjC++ 브릿지 헤더에 AVFoundation 프로토콜이 노출되지 않도록 함
 private class SpeechDelegate: NSObject, AVSpeechSynthesizerDelegate {
     func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-        SpeechDelegate.restoreAudioSession()
-    }
-
-    static func restoreAudioSession() {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(
-                .playback, mode: .default, options: [.mixWithOthers, .duckOthers]
-            )
-        } catch {
-            print("[VoiceAlertEngine] restore session error: \(error)")
-        }
+        // 오디오 세션을 건드리지 않음 — MetronomeEngine이 관리
     }
 }

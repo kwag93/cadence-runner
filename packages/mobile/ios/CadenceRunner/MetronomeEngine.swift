@@ -1,4 +1,5 @@
 import AVFoundation
+import UIKit
 
 @objc class MetronomeEngine: NSObject {
     private let engine = AVAudioEngine()
@@ -13,6 +14,10 @@ import AVFoundation
 
     private var _bpm: Double = 170
     private var _isPlaying = false
+    private var _hapticEnabled = true
+
+    // 햅틱 피드백 — main thread에서만 접근
+    private var hapticGenerator: UIImpactFeedbackGenerator?
 
     override init() {
         format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
@@ -57,6 +62,13 @@ import AVFoundation
             return
         }
 
+        // 햅틱 피드백 준비 (main thread)
+        DispatchQueue.main.async { [weak self] in
+            let gen = UIImpactFeedbackGenerator(style: .medium)
+            gen.prepare()
+            self?.hapticGenerator = gen
+        }
+
         playerNode.play()
         startTimer()
     }
@@ -71,6 +83,16 @@ import AVFoundation
         playerNode.stop()
         engine.stop()
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+
+        DispatchQueue.main.async { [weak self] in
+            self?.hapticGenerator = nil
+        }
+    }
+
+    @objc func setHapticEnabled(_ enabled: Bool) {
+        lock.lock()
+        _hapticEnabled = enabled
+        lock.unlock()
     }
 
     @objc func setBpm(_ bpm: Double) {
@@ -174,8 +196,16 @@ import AVFoundation
     private func tick() {
         lock.lock()
         let playing = _isPlaying
+        let haptic = _hapticEnabled
         lock.unlock()
         guard playing else { return }
         playerNode.scheduleBuffer(clickBuffer, at: nil, options: [], completionHandler: nil)
+
+        // 햅틱 피드백 (main thread 필수)
+        if haptic {
+            DispatchQueue.main.async { [weak self] in
+                self?.hapticGenerator?.impactOccurred()
+            }
+        }
     }
 }
