@@ -9,12 +9,16 @@
 /* Begin PBXBuildFile section */
 		0C80B921A6F3F58F76C31292 /* libPods-CadenceRunner.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-CadenceRunner.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		1BDBC9DBB6B408744821C2DE /* RCTNativeHealthKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 80635FF5C86025CC27906FBE /* RCTNativeHealthKit.h */; };
+		2BC3B50D99CF9332A88AB1CD /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 83203620D0CC5554B45F840D /* HealthKit.framework */; };
 		304BF446B1FBF7D50F93EAE4 /* RCTNativeVoiceAlert.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0FE0C4BC65440179A78F52E7 /* RCTNativeVoiceAlert.mm */; };
 		4EE4F39AA697513B4AE0FF96 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		89D634CDA287F460D5DA710A /* RCTNativeHealthKit.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7B5FF402DB36F97C1E7B3F44 /* RCTNativeHealthKit.mm */; };
 		A4662EAE5FC536A0644C2F45 /* RCTNativeMetronome.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1D6AD3070CE57B4C01552FC7 /* RCTNativeMetronome.mm */; };
 		BCC92115CCB4F436FF8D052B /* VoiceAlertEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2FB8F1BFECCE39A4A06AA4 /* VoiceAlertEngine.swift */; };
+		C4D6289F602046F3EAC909F0 /* HealthKitEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA44BA7E44E095B91882EA8 /* HealthKitEngine.swift */; };
 		CEF1114C4389396F843C885F /* CadenceEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B9B15E5F169728C2AC348E /* CadenceEngine.swift */; };
 		E617DFB592DFB6A35E15209C /* MetronomeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C13FA339A623DC8F1C466A3 /* MetronomeEngine.swift */; };
 		F3B43E446C9013B1B6A2369F /* RCTNativeCadence.mm in Sources */ = {isa = PBXBuildFile; fileRef = 279786478B177AC594628C6B /* RCTNativeCadence.mm */; };
@@ -22,11 +26,13 @@
 
 /* Begin PBXFileReference section */
 		0C13FA339A623DC8F1C466A3 /* MetronomeEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = MetronomeEngine.swift; path = CadenceRunner/MetronomeEngine.swift; sourceTree = "<group>"; };
+		0E2CC1EF00F449DC3E8F88B3 /* CadenceRunner.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = CadenceRunner.entitlements; path = CadenceRunner/CadenceRunner.entitlements; sourceTree = "<group>"; };
 		0FE0C4BC65440179A78F52E7 /* RCTNativeVoiceAlert.mm */ = {isa = PBXFileReference; includeInIndex = 1; name = RCTNativeVoiceAlert.mm; path = CadenceRunner/RCTNativeVoiceAlert.mm; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* CadenceRunner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CadenceRunner.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = CadenceRunner/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = CadenceRunner/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = CadenceRunner/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1CA44BA7E44E095B91882EA8 /* HealthKitEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HealthKitEngine.swift; path = CadenceRunner/HealthKitEngine.swift; sourceTree = "<group>"; };
 		1D6AD3070CE57B4C01552FC7 /* RCTNativeMetronome.mm */ = {isa = PBXFileReference; includeInIndex = 1; name = RCTNativeMetronome.mm; path = CadenceRunner/RCTNativeMetronome.mm; sourceTree = "<group>"; };
 		279786478B177AC594628C6B /* RCTNativeCadence.mm */ = {isa = PBXFileReference; includeInIndex = 1; name = RCTNativeCadence.mm; path = CadenceRunner/RCTNativeCadence.mm; sourceTree = "<group>"; };
 		2A8A6181A3965B5526A9BDD4 /* RCTNativeMetronome.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTNativeMetronome.h; path = CadenceRunner/RCTNativeMetronome.h; sourceTree = "<group>"; };
@@ -36,7 +42,10 @@
 		5DCACB8F33CDC322A6C60F78 /* libPods-CadenceRunner.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-CadenceRunner.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		67CDD0CDD4B3CD9879CE141A /* RCTNativeCadence.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTNativeCadence.h; path = CadenceRunner/RCTNativeCadence.h; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = CadenceRunner/AppDelegate.swift; sourceTree = "<group>"; };
+		7B5FF402DB36F97C1E7B3F44 /* RCTNativeHealthKit.mm */ = {isa = PBXFileReference; includeInIndex = 1; name = RCTNativeHealthKit.mm; path = CadenceRunner/RCTNativeHealthKit.mm; sourceTree = "<group>"; };
+		80635FF5C86025CC27906FBE /* RCTNativeHealthKit.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTNativeHealthKit.h; path = CadenceRunner/RCTNativeHealthKit.h; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = CadenceRunner/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		83203620D0CC5554B45F840D /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 		B1B9B15E5F169728C2AC348E /* CadenceEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CadenceEngine.swift; path = CadenceRunner/CadenceEngine.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FF2FB8F1BFECCE39A4A06AA4 /* VoiceAlertEngine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = VoiceAlertEngine.swift; path = CadenceRunner/VoiceAlertEngine.swift; sourceTree = "<group>"; };
@@ -48,6 +57,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0C80B921A6F3F58F76C31292 /* libPods-CadenceRunner.a in Frameworks */,
+				2BC3B50D99CF9332A88AB1CD /* HealthKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +81,10 @@
 				FF2FB8F1BFECCE39A4A06AA4 /* VoiceAlertEngine.swift */,
 				33BEB144135136340F1AF06E /* RCTNativeVoiceAlert.h */,
 				0FE0C4BC65440179A78F52E7 /* RCTNativeVoiceAlert.mm */,
+				1CA44BA7E44E095B91882EA8 /* HealthKitEngine.swift */,
+				80635FF5C86025CC27906FBE /* RCTNativeHealthKit.h */,
+				7B5FF402DB36F97C1E7B3F44 /* RCTNativeHealthKit.mm */,
+				0E2CC1EF00F449DC3E8F88B3 /* CadenceRunner.entitlements */,
 			);
 			name = CadenceRunner;
 			sourceTree = "<group>";
@@ -80,6 +94,7 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				5DCACB8F33CDC322A6C60F78 /* libPods-CadenceRunner.a */,
+				83203620D0CC5554B45F840D /* HealthKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -124,6 +139,17 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		9ECC85754F81271D75273B97 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1BDBC9DBB6B408744821C2DE /* RCTNativeHealthKit.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
 		13B07F861A680F5B00A75B9A /* CadenceRunner */ = {
 			isa = PBXNativeTarget;
@@ -136,6 +162,7 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
 				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
+				9ECC85754F81271D75273B97 /* Headers */,
 			);
 			buildRules = (
 			);
@@ -156,6 +183,11 @@
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1120;
+						SystemCapabilities = {
+							com.apple.HealthKit = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -277,6 +309,8 @@
 				F3B43E446C9013B1B6A2369F /* RCTNativeCadence.mm in Sources */,
 				BCC92115CCB4F436FF8D052B /* VoiceAlertEngine.swift in Sources */,
 				304BF446B1FBF7D50F93EAE4 /* RCTNativeVoiceAlert.mm in Sources */,
+				C4D6289F602046F3EAC909F0 /* HealthKitEngine.swift in Sources */,
+				89D634CDA287F460D5DA710A /* RCTNativeHealthKit.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -289,6 +323,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = CadenceRunner/CadenceRunner.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T45C2GS8X6;
@@ -321,6 +356,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = CadenceRunner/CadenceRunner.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = T45C2GS8X6;

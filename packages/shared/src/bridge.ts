@@ -16,7 +16,9 @@ export type WebMessage =
   | { type: 'stop_metronome' }
   | { type: 'speak'; text: string }
   | { type: 'set_haptic'; enabled: boolean }
-  | { type: 'set_sound_type'; value: string };
+  | { type: 'set_sound_type'; value: string }
+  | { type: 'request_health_auth' }
+  | { type: 'save_workout'; startDate: string; endDate: string; durationSeconds: number; avgCadence: number };
 
 export type BridgeError = {
   type: 'error';

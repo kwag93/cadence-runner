@@ -9,6 +9,7 @@ import {BPM_DEFAULT, BPM_MIN, BPM_MAX, type WebMessage} from '@cadence-runner/sh
 import NativeMetronome from './specs/NativeMetronome';
 import NativeCadence from './specs/NativeCadence';
 import NativeVoiceAlert from './specs/NativeVoiceAlert';
+import NativeHealthKit from './specs/NativeHealthKit';
 
 const SURFACE_BG = '#070d1f';
 
@@ -42,6 +43,11 @@ function AppContent() {
   const webViewRef = useRef<WebView>(null);
   const targetBpmRef = useRef(BPM_DEFAULT);
   const workoutActiveRef = useRef(false);
+
+  // HealthKit 권한 요청 (앱 시작 시 1회)
+  useEffect(() => {
+    NativeHealthKit.requestAuthorization();
+  }, []);
 
   // cadence polling: 1초마다 SPM을 WebView에 전달
   useEffect(() => {
@@ -123,6 +129,19 @@ function AppContent() {
           NativeMetronome.setSoundType(msg.value);
         }
         console.log('[Bridge] set_sound_type:', msg.value);
+        break;
+      case 'request_health_auth':
+        NativeHealthKit.requestAuthorization();
+        console.log('[Bridge] request_health_auth');
+        break;
+      case 'save_workout':
+        NativeHealthKit.saveWorkout(
+          msg.startDate,
+          msg.endDate,
+          msg.durationSeconds,
+          msg.avgCadence,
+        );
+        console.log('[Bridge] save_workout');
         break;
       default:
         console.warn('[Bridge] unknown message type:', (msg as {type: string}).type);

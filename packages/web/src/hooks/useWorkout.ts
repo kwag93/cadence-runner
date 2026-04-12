@@ -183,6 +183,15 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
       });
     }
 
+    // HealthKit에 운동 저장
+    postToNative({
+      type: 'save_workout',
+      startDate: session.startedAt,
+      endDate: session.endedAt,
+      durationSeconds: session.durationSeconds,
+      avgCadence: session.avgSpm,
+    });
+
     return session;
   }, [state.elapsedSeconds, state.targetBpm]);
 
