@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Timer, Mic, PauseCircle, Vibrate, Lightbulb } from "lucide-react";
+import { Timer, Mic, PauseCircle, Vibrate, Lightbulb, Heart } from "lucide-react";
 import { BPM_MIN, BPM_MAX } from "@cadence-runner/shared";
 import type { UserSettings, SoundType, WorkoutSession } from "@cadence-runner/shared";
 
@@ -266,6 +266,64 @@ export function SettingsPage({ settings, onUpdate, sessions }: SettingsPageProps
                 <span className="text-xs font-heading font-bold text-outline-variant uppercase">임계값</span>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Heart Rate Zone */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-3">
+          <Heart className="w-6 h-6 text-red-500" />
+          <h2 className="text-2xl font-bold font-heading tracking-tight text-on-surface uppercase">
+            심박 존
+          </h2>
+        </div>
+        <Card className="bg-surface-container border-outline-variant/30">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <label className="font-heading text-on-surface-variant font-bold uppercase tracking-wider text-xs block">
+                  나이
+                </label>
+                <p className="text-xs text-outline mt-1">최대 심박수 계산에 사용 (220 - 나이)</p>
+              </div>
+              <span className="text-2xl font-black text-on-surface font-heading">
+                {settings.age > 0 ? settings.age : '미설정'}
+              </span>
+            </div>
+            <Slider
+              value={[settings.age || 30]}
+              onValueChange={(v) => onUpdate('age', Array.isArray(v) ? v[0] : v)}
+              min={15}
+              max={80}
+              step={1}
+            />
+            <div className="flex justify-between text-xs font-heading text-outline mt-2">
+              <span>15세</span>
+              <span>80세</span>
+            </div>
+            {settings.age > 0 && (
+              <div className="mt-4 grid grid-cols-5 gap-1 text-center">
+                {([1, 2, 3, 4, 5] as const).map((zone) => {
+                  const maxHR = 220 - settings.age;
+                  const ranges = [
+                    [Math.round(maxHR * 0.5), Math.round(maxHR * 0.6)],
+                    [Math.round(maxHR * 0.6), Math.round(maxHR * 0.7)],
+                    [Math.round(maxHR * 0.7), Math.round(maxHR * 0.8)],
+                    [Math.round(maxHR * 0.8), Math.round(maxHR * 0.9)],
+                    [Math.round(maxHR * 0.9), maxHR],
+                  ];
+                  const [lo, hi] = ranges[zone - 1];
+                  const colors = ['bg-blue-400/20', 'bg-green-400/20', 'bg-yellow-400/20', 'bg-orange-400/20', 'bg-red-500/20'];
+                  return (
+                    <div key={zone} className={`${colors[zone - 1]} rounded-lg p-2`}>
+                      <span className="text-xs font-bold block">Z{zone}</span>
+                      <span className="text-xs text-on-surface-variant">{lo}-{hi}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </section>

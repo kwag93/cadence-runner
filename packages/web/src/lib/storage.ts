@@ -21,6 +21,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
   deviationThreshold: DEVIATION_THRESHOLD_SPM,
   cooldownSeconds: VOICE_COOLDOWN_SECONDS,
   autoPauseThreshold: AUTO_PAUSE_SPM_THRESHOLD,
+  age: 0,
 };
 
 export function loadSettings(): UserSettings {

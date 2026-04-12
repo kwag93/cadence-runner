@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Flag, Music, Play, StopCircle, RotateCcw, Minus, Plus, Heart } from "lucide-react";
 import { useWorkout } from "@/hooks/useWorkout";
 import { formatTime } from "@/lib/format";
-import { BPM_MIN, BPM_MAX } from "@cadence-runner/shared";
+import { BPM_MIN, BPM_MAX, getHeartRateZone, HR_ZONE_NAMES, HR_ZONE_COLORS } from "@cadence-runner/shared";
 import type { UserSettings, WorkoutSession } from "@cadence-runner/shared";
 
 interface ActiveRunProps {
@@ -59,6 +59,9 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
 
   const deviationSign = deviation > 0 ? '+' : '';
   const displaySpm = isRunning ? currentSpm : 0;
+  const hrZone = heartRate > 0 && settings.age > 0 ? getHeartRateZone(heartRate, settings.age) : null;
+  const hrZoneColor = hrZone ? HR_ZONE_COLORS[hrZone] : '';
+  const hrZoneName = hrZone ? HR_ZONE_NAMES[hrZone] : '';
 
   return (
     <div className="px-6 pb-4 flex flex-col items-center">
@@ -115,12 +118,12 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
           { label: "시간", value: formatTime(elapsedSeconds) },
           { label: "목표", value: String(targetBpm), unit: "BPM" },
           { label: "편차", value: isRunning ? `${deviation > 0 ? '+' : ''}${deviation}` : "0", unit: "SPM" },
-          ...(heartRate > 0 ? [{ label: "심박", value: String(heartRate), unit: "BPM", icon: true }] : []),
+          ...(heartRate > 0 ? [{ label: hrZone ? `Z${hrZone} ${hrZoneName}` : "심박", value: String(heartRate), unit: "BPM", icon: true }] : []),
         ].map((stat) => (
           <Card key={stat.label} className="bg-surface-container-low border-transparent">
             <CardContent className="p-3 flex flex-col items-center">
               <span className="text-xs font-heading font-bold text-on-surface-variant uppercase mb-0.5 flex items-center gap-1">
-                {'icon' in stat && <Heart className="w-3 h-3 text-red-500" />}
+                {'icon' in stat && <Heart className={`w-3 h-3 ${hrZoneColor || 'text-red-500'}`} />}
                 {stat.label}
               </span>
               <span className="text-lg font-black font-heading">

@@ -40,4 +40,6 @@ export interface UserSettings {
   deviationThreshold: number;
   cooldownSeconds: number;
   autoPauseThreshold: number;
+  /** 사용자 나이 (심박 존 계산용, 0이면 미설정) */
+  age: number;
 }
