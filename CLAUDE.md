@@ -122,8 +122,31 @@ proj.save
 - main 브랜치에 직접 커밋 금지. feature 브랜치 → PR.
 - 커밋 메시지: Conventional Commits (한국어 설명).
 
+## Native Modules
+
+| Module | 역할 | 파일 |
+|--------|------|------|
+| NativeMetronome | 메트로놈 재생/정지, BPM/사운드/햅틱 | MetronomeEngine.swift |
+| NativeCadence | CMPedometer 기반 SPM 측정 | CadenceEngine.swift |
+| NativeVoiceAlert | AVSpeechSynthesizer TTS | VoiceAlertEngine.swift |
+| NativeHealthKit | 운동 저장 + 심박수 읽기 | HealthKitEngine.swift |
+| NativeLiveActivity | ActivityKit Live Activity | LiveActivityManager.swift |
+
+### HealthKit 심박수
+
+`HealthKitEngine.getLatestHeartRate()`는 동기적으로 호출하되 내부에서 semaphore로 비동기 쿼리를 대기 (최대 2초).
+최근 5분 이내 데이터만 반환. Apple Watch 미착용 시 -1 반환.
+
+### Live Activity (Widget Extension)
+
+`RunActivityWidget/` 디렉토리에 WidgetKit extension 존재.
+- `Info.plist`에 `NSExtension` 딕셔너리 필수
+- Bundle ID: 앱 bundle ID + `.RunActivityWidget` (prefix 규칙 준수)
+- `GENERATE_INFOPLIST_FILE = NO`로 설정하고 직접 Info.plist 참조
+
 ## Known Limitations (v0.1)
 
 - MetronomeEngine은 DispatchSourceTimer 기반 (1~5ms 지터). 프로덕션에서는 AVAudioSourceNode 렌더 콜백으로 교체 필요.
 - Production URL이 iOS에서 아직 미설정 (번들 HTML 경로 결정 필요).
 - `originWhitelist={['*']}`은 개발용. 프로덕션에서 제한 필요.
+- 심박수는 Apple Watch 연동 시에만 사용 가능. HealthKit semaphore 방식은 메인 스레드 블로킹 위험 — 향후 비동기 콜백으로 전환 권장.
