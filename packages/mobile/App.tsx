@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {Platform, StatusBar, StyleSheet, View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ActivityIndicator, Platform, StatusBar, StyleSheet, Text, View} from 'react-native';
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -44,6 +44,8 @@ function AppContent() {
   const webViewRef = useRef<WebView>(null);
   const targetBpmRef = useRef(BPM_DEFAULT);
   const workoutActiveRef = useRef(false);
+
+  const [webLoaded, setWebLoaded] = useState(false);
 
   // HealthKit 권한 요청은 save_workout 시 자동 처리
   const healthAuthRequestedRef = useRef(false);
@@ -205,8 +207,8 @@ function AppContent() {
         onMessage={handleMessage}
         onError={(e) => console.error('[WebView] error:', e.nativeEvent.description)}
         onHttpError={(e) => console.error('[WebView] HTTP error:', e.nativeEvent.statusCode, e.nativeEvent.url)}
-        onLoadStart={() => console.log('[WebView] loading:', WEB_URL)}
-        onLoadEnd={() => console.log('[WebView] loaded')}
+        onLoadStart={() => { setWebLoaded(false); console.log('[WebView] loading:', WEB_URL); }}
+        onLoadEnd={() => { setWebLoaded(true); console.log('[WebView] loaded'); }}
         injectedJavaScript={safeAreaScript}
         javaScriptEnabled
         domStorageEnabled
@@ -214,6 +216,12 @@ function AppContent() {
         mediaPlaybackRequiresUserAction={false}
         webviewDebuggingEnabled={__DEV__}
       />
+      {!webLoaded && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#69f6b8" />
+          <Text style={styles.loadingText}>케이던스 러너</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -225,6 +233,23 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: SURFACE_BG,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#69f6b8',
+    fontSize: 20,
+    fontWeight: '800',
+    marginTop: 16,
+    letterSpacing: 2,
   },
 });
 
