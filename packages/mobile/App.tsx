@@ -44,10 +44,8 @@ function AppContent() {
   const targetBpmRef = useRef(BPM_DEFAULT);
   const workoutActiveRef = useRef(false);
 
-  // HealthKit 권한 요청 (앱 시작 시 1회)
-  useEffect(() => {
-    NativeHealthKit.requestAuthorization();
-  }, []);
+  // HealthKit 권한 요청은 save_workout 시 자동 처리
+  const healthAuthRequestedRef = useRef(false);
 
   // cadence polling: 1초마다 SPM을 WebView에 전달
   useEffect(() => {
@@ -135,6 +133,11 @@ function AppContent() {
         console.log('[Bridge] request_health_auth');
         break;
       case 'save_workout':
+        // 첫 저장 시 HealthKit 권한 요청
+        if (!healthAuthRequestedRef.current) {
+          NativeHealthKit.requestAuthorization();
+          healthAuthRequestedRef.current = true;
+        }
         NativeHealthKit.saveWorkout(
           msg.startDate,
           msg.endDate,
