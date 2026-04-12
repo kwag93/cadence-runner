@@ -45,8 +45,8 @@ function SessionList({ sessions, onView }: {
     return (
       <div className="px-6 flex flex-col items-center justify-center min-h-[40vh]">
         <Zap className="w-16 h-16 text-outline mb-4" />
-        <p className="text-lg font-bold text-on-surface-variant">No runs yet</p>
-        <p className="text-sm text-outline mt-1">Complete your first run to see it here</p>
+        <p className="text-lg font-bold text-on-surface-variant">아직 기록이 없습니다</p>
+        <p className="text-sm text-outline mt-1">첫 러닝을 완료하면 여기에 표시됩니다</p>
       </div>
     );
   }
@@ -70,13 +70,13 @@ function SessionList({ sessions, onView }: {
                   {formatDate(s.startedAt)} {formatTimeOfDay(s.startedAt)}
                 </p>
                 <p className="text-[10px] text-on-surface-variant uppercase tracking-wide">
-                  {formatTime(s.durationSeconds)} · {onTargetPct}% on target
+                  {formatTime(s.durationSeconds)} · {onTargetPct}% 목표 달성
                 </p>
               </div>
               <div className="text-right flex items-center gap-2">
                 <div>
                   <p className="font-heading font-bold text-primary">{s.avgSpm}</p>
-                  <p className="text-[9px] text-on-surface-variant uppercase tracking-tighter">Avg SPM</p>
+                  <p className="text-[9px] text-on-surface-variant uppercase tracking-tighter">평균 SPM</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-outline" />
               </div>
@@ -112,9 +112,9 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
   const total = spmValues.length || 1;
 
   const zones = [
-    { label: "On Target", pct: `${onTargetPct}%`, color: "bg-primary" },
-    { label: "Warning", pct: `${Math.round((warning / total) * 100)}%`, color: "bg-tertiary" },
-    { label: "Off Target", pct: `${Math.round((offTarget / total) * 100)}%`, color: "bg-error-dim" },
+    { label: "목표 달성", pct: `${onTargetPct}%`, color: "bg-primary" },
+    { label: "주의", pct: `${Math.round((warning / total) * 100)}%`, color: "bg-tertiary" },
+    { label: "목표 이탈", pct: `${Math.round((offTarget / total) * 100)}%`, color: "bg-error-dim" },
   ];
 
   return (
@@ -122,7 +122,7 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
       {/* Back button */}
       <button onClick={onBack} className="flex items-center gap-2 text-primary font-bold text-sm">
         <ArrowLeft className="w-4 h-4" />
-        Back to History
+        기록으로 돌아가기
       </button>
 
       {/* Hero */}
@@ -133,7 +133,7 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
             {formatTimeOfDay(s.startedAt)}
           </p>
           <h2 className="text-2xl font-bold text-on-surface">
-            {formatDate(s.startedAt)} Run
+            {formatDate(s.startedAt)} 러닝
           </h2>
         </div>
       </section>
@@ -145,7 +145,7 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
             <div className="flex items-center gap-2 mb-2">
               <Timer className="w-4 h-4 text-secondary" />
               <p className="text-on-surface-variant font-heading text-xs uppercase tracking-widest">
-                Total Time
+                총 시간
               </p>
             </div>
             <p className="text-3xl font-bold text-on-surface">{formatTime(s.durationSeconds)}</p>
@@ -157,7 +157,7 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-4 h-4 text-primary" />
               <p className="text-on-surface-variant font-heading text-xs uppercase tracking-widest">
-                Target BPM
+                목표 BPM
               </p>
             </div>
             <p className="text-3xl font-bold text-on-surface">{s.targetBpm}</p>
@@ -168,7 +168,7 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <p className="text-on-surface-variant font-heading text-xs uppercase tracking-widest mb-1">
-                Average Cadence
+                평균 케이던스
               </p>
               <div className="flex items-baseline gap-2">
                 <span className="text-5xl font-black text-primary">{s.avgSpm}</span>
@@ -177,10 +177,10 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
             </div>
             <div className="text-right">
               <p className="text-sm text-on-surface-variant">
-                Max <span className="font-bold text-on-surface">{s.maxSpm}</span>
+                최고 <span className="font-bold text-on-surface">{s.maxSpm}</span>
               </p>
               <p className="text-sm text-on-surface-variant">
-                Min <span className="font-bold text-on-surface">{s.minSpm}</span>
+                최저 <span className="font-bold text-on-surface">{s.minSpm}</span>
               </p>
             </div>
           </CardContent>
@@ -192,9 +192,9 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
         <Card className="bg-surface-container border-outline-variant">
           <CardContent className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="font-bold text-on-surface">Cadence Analysis</h3>
+              <h3 className="font-bold text-on-surface">케이던스 분석</h3>
               <Badge className="bg-primary/10 text-primary-dim border-0 text-xs">
-                Target: {s.targetBpm} SPM
+                목표: {s.targetBpm} SPM
               </Badge>
             </div>
             <div className="relative h-40 w-full flex items-end gap-1 px-1">
@@ -210,9 +210,9 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
               })}
             </div>
             <div className="flex justify-between mt-3 text-[10px] font-heading text-on-surface-variant uppercase tracking-widest">
-              <span>Start</span>
-              <span>Mid</span>
-              <span>Finish</span>
+              <span>시작</span>
+              <span>중간</span>
+              <span>종료</span>
             </div>
             <div className="mt-6 flex justify-between gap-2">
               {zones.map((z) => (
@@ -235,7 +235,7 @@ function SessionDetail({ session, onBack, onDelete, deviationThreshold }: {
           className="w-full text-error font-bold flex items-center gap-2"
         >
           <Trash2 className="w-4 h-4" />
-          Delete this run
+          이 기록 삭제
         </Button>
       </div>
     </div>

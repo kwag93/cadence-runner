@@ -1,10 +1,10 @@
 import { Activity, History, BarChart3, Settings } from "lucide-react";
 
 const tabs = [
-  { id: "run", label: "Run", icon: Activity },
-  { id: "history", label: "History", icon: History },
-  { id: "stats", label: "Stats", icon: BarChart3 },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "run", label: "러닝", icon: Activity },
+  { id: "history", label: "기록", icon: History },
+  { id: "stats", label: "통계", icon: BarChart3 },
+  { id: "settings", label: "설정", icon: Settings },
 ] as const;
 
 export type TabId = (typeof tabs)[number]["id"];

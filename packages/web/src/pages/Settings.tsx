@@ -2,9 +2,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Timer, Mic, PauseCircle, Vibrate } from "lucide-react";
-import type { UserSettings } from "@cadence-runner/shared";
+import { BPM_MIN, BPM_MAX } from "@cadence-runner/shared";
+import type { UserSettings, SoundType } from "@cadence-runner/shared";
 
-const soundTypes = ["Click", "Woodblock", "Digital"] as const;
+const soundTypes: SoundType[] = ["Click", "Woodblock", "Digital"];
+const soundTypeLabels: Record<SoundType, string> = {
+  Click: "클릭",
+  Woodblock: "우드블록",
+  Digital: "디지털",
+};
 
 interface SettingsPageProps {
   settings: UserSettings;
@@ -19,7 +25,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
         <div className="flex items-center gap-3">
           <Timer className="w-6 h-6 text-primary" />
           <h2 className="text-2xl font-bold font-heading tracking-tight text-on-surface uppercase">
-            Metronome
+            메트로놈
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -27,7 +33,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
             <CardContent className="p-6 flex flex-col justify-between min-h-[180px]">
               <div className="flex justify-between items-start">
                 <label className="font-heading text-on-surface-variant font-bold uppercase tracking-wider text-xs">
-                  BPM Range
+                  BPM 범위
                 </label>
                 <span className="text-3xl font-black text-primary font-heading">{settings.targetBpm}</span>
               </div>
@@ -35,14 +41,14 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
                 <Slider
                   value={[settings.targetBpm]}
                   onValueChange={(v) => onUpdate('targetBpm', Array.isArray(v) ? v[0] : v)}
-                  min={30}
-                  max={300}
+                  min={BPM_MIN}
+                  max={BPM_MAX}
                   step={1}
                   className="w-full"
                 />
                 <div className="flex justify-between text-[10px] font-heading text-outline mt-2">
-                  <span>30 BPM</span>
-                  <span>300 BPM</span>
+                  <span>{BPM_MIN} BPM</span>
+                  <span>{BPM_MAX} BPM</span>
                 </div>
               </div>
             </CardContent>
@@ -51,7 +57,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
           <Card className="bg-surface-container border-outline-variant/30">
             <CardContent className="p-6">
               <label className="font-heading text-on-surface-variant font-bold uppercase tracking-wider text-xs block mb-4">
-                Sound Type
+                사운드 종류
               </label>
               <div className="space-y-2">
                 {soundTypes.map((sound) => (
@@ -64,7 +70,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
                         : "bg-surface-variant text-on-surface-variant hover:bg-surface-bright"
                     }`}
                   >
-                    <span>{sound}</span>
+                    <span>{soundTypeLabels[sound] ?? sound}</span>
                     {settings.soundType === sound && (
                       <span className="text-on-primary-container">✓</span>
                     )}
@@ -82,7 +88,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
           <div className="flex items-center gap-3">
             <Vibrate className="w-6 h-6 text-primary" />
             <h2 className="text-2xl font-bold font-heading tracking-tight text-on-surface uppercase">
-              Haptic
+              진동
             </h2>
           </div>
           <Switch
@@ -92,7 +98,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
           />
         </div>
         <p className="text-sm text-outline">
-          Feel each metronome beat through vibration — great when running with music.
+          메트로놈 박자를 진동으로 느낄 수 있습니다 — 음악과 함께 달릴 때 유용합니다.
         </p>
       </section>
 
@@ -102,7 +108,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
           <div className="flex items-center gap-3">
             <Mic className="w-6 h-6 text-primary" />
             <h2 className="text-2xl font-bold font-heading tracking-tight text-on-surface uppercase">
-              Voice Alert
+              음성 알림
             </h2>
           </div>
           <Switch
@@ -117,9 +123,9 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <label className="font-heading text-on-surface-variant font-bold uppercase tracking-wider text-xs block">
-                    Deviation Threshold
+                    편차 임계값
                   </label>
-                  <p className="text-[10px] text-outline mt-1">Trigger alert when cadence drifts</p>
+                  <p className="text-[10px] text-outline mt-1">케이던스가 벗어나면 알림 발생</p>
                 </div>
                 <span className="text-2xl font-black text-tertiary font-heading">
                   ±{settings.deviationThreshold}<span className="text-sm font-medium ml-1">SPM</span>
@@ -144,12 +150,12 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <label className="font-heading text-on-surface-variant font-bold uppercase tracking-wider text-xs block">
-                    Cooldown Timer
+                    알림 간격
                   </label>
-                  <p className="text-[10px] text-outline mt-1">Wait time between alerts</p>
+                  <p className="text-[10px] text-outline mt-1">알림 사이 대기 시간</p>
                 </div>
                 <span className="text-2xl font-black text-on-surface font-heading">
-                  {settings.cooldownSeconds}<span className="text-sm font-medium ml-1">sec</span>
+                  {settings.cooldownSeconds}<span className="text-sm font-medium ml-1">초</span>
                 </span>
               </div>
               <Slider
@@ -160,8 +166,8 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
                 step={1}
               />
               <div className="flex justify-between text-[10px] font-heading text-outline mt-2">
-                <span>10s</span>
-                <span>30s</span>
+                <span>10초</span>
+                <span>30초</span>
               </div>
             </CardContent>
           </Card>
@@ -173,7 +179,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
         <div className="flex items-center gap-3">
           <PauseCircle className="w-6 h-6 text-error" />
           <h2 className="text-2xl font-bold font-heading tracking-tight text-on-surface uppercase">
-            Auto-pause
+            자동 일시정지
           </h2>
         </div>
         <Card className="bg-surface-container border-outline-variant/30">
@@ -181,10 +187,10 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex-1">
                 <label className="font-heading text-on-surface-variant font-bold uppercase tracking-wider text-xs block mb-1">
-                  SPM Threshold
+                  SPM 임계값
                 </label>
                 <p className="text-sm text-outline mb-6">
-                  Pause the session automatically when your cadence drops below this limit.
+                  케이던스가 이 값 아래로 떨어지면 자동으로 세션을 일시정지합니다.
                 </p>
                 <Slider
                   value={[settings.autoPauseThreshold]}
@@ -200,7 +206,7 @@ export function SettingsPage({ settings, onUpdate }: SettingsPageProps) {
               </div>
               <div className="flex flex-col items-center justify-center bg-surface-variant rounded-2xl p-6 min-w-[140px] border border-outline-variant/50">
                 <span className="text-5xl font-black text-error font-heading">{settings.autoPauseThreshold}</span>
-                <span className="text-xs font-heading font-bold text-outline-variant uppercase">Threshold</span>
+                <span className="text-xs font-heading font-bold text-outline-variant uppercase">임계값</span>
               </div>
             </div>
           </CardContent>

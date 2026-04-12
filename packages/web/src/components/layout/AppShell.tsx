@@ -11,9 +11,9 @@ import { useHistory } from "@/hooks/useHistory";
 
 const headerTitles: Record<TabId, string | undefined> = {
   run: undefined,
-  history: "History",
+  history: "기록",
   stats: undefined,
-  settings: "Settings",
+  settings: "설정",
 };
 
 export function AppShell() {

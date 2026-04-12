@@ -34,7 +34,11 @@ export function loadSettings(): UserSettings {
 }
 
 export function saveSettings(settings: UserSettings): void {
-  localStorage.setItem(KEYS.settings, JSON.stringify(settings));
+  try {
+    localStorage.setItem(KEYS.settings, JSON.stringify(settings));
+  } catch {
+    // QuotaExceededError 또는 접근 제한 — 설정 손실보다 앱 크래시가 더 나쁨
+  }
 }
 
 // ─── History ─────────────────────────────────────────────────────────

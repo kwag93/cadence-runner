@@ -10,7 +10,7 @@ export function Header({ title }: HeaderProps) {
       <div className="flex items-center gap-3">
         <Zap className="w-6 h-6 text-primary" />
         <h1 className="font-heading uppercase font-bold text-primary italic text-2xl tracking-tighter">
-          CADENCE
+          케이던스
         </h1>
       </div>
       {title && (

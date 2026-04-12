@@ -3,10 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Flag, Music, Play, StopCircle, RotateCcw } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Flag, Music, Play, StopCircle, RotateCcw, Minus, Plus } from "lucide-react";
 import { useWorkout } from "@/hooks/useWorkout";
 import { formatTime } from "@/lib/format";
-import { postToNative } from "@/lib/bridge";
+import { BPM_MIN, BPM_MAX } from "@cadence-runner/shared";
 import type { UserSettings, WorkoutSession } from "@cadence-runner/shared";
 
 interface ActiveRunProps {
@@ -18,7 +19,7 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
   const {
     isRunning, isPaused, elapsedSeconds, currentSpm, targetBpm,
     metronomeOn, deviation,
-    startWorkout, stopWorkout, resumeWorkout, setMetronome,
+    startWorkout, stopWorkout, resumeWorkout, setMetronome, setTargetBpm, speak,
   } = useWorkout({ settings });
 
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -32,22 +33,22 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
   const handleStart = useCallback(() => {
     clearInterval(countdownRef.current);
     setCountdown(3);
-    postToNative({ type: 'speak', text: '3' });
+    speak('3');
 
     let count = 3;
     countdownRef.current = setInterval(() => {
       count--;
       if (count > 0) {
         setCountdown(count);
-        postToNative({ type: 'speak', text: String(count) });
+        speak(String(count));
       } else {
         clearInterval(countdownRef.current);
         setCountdown(null);
-        postToNative({ type: 'speak', text: '시작!' });
+        speak('시작!');
         startWorkout();
       }
     }, 1000);
-  }, [startWorkout]);
+  }, [startWorkout, speak]);
 
   const handleStop = () => {
     const session = stopWorkout();
@@ -60,32 +61,32 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
   const displaySpm = isRunning ? currentSpm : 0;
 
   return (
-    <div className="px-6 flex flex-col items-center">
+    <div className="px-6 pb-4 flex flex-col items-center">
       {/* Elapsed Time */}
-      <div className="w-full flex flex-col items-center mt-4">
-        <Badge variant="outline" className="mb-4 bg-surface-container-high border-outline-variant/30 text-on-surface-variant font-heading font-bold tracking-wider text-sm px-4 py-1.5 rounded-full">
-          {countdown !== null ? 'GET READY' : isPaused ? 'PAUSED' : isRunning ? 'ELAPSED TIME' : 'READY'}
+      <div className="w-full flex flex-col items-center mt-2">
+        <Badge variant="outline" className="mb-2 bg-surface-container-high border-outline-variant/30 text-on-surface-variant font-heading font-bold tracking-wider text-sm px-4 py-1 rounded-full">
+          {countdown !== null ? '준비' : isPaused ? '일시정지' : isRunning ? '경과 시간' : '대기 중'}
         </Badge>
-        <div className={`text-5xl font-black font-heading tracking-tighter ${isPaused ? 'text-tertiary animate-pulse' : 'text-on-surface'}`}>
+        <div className={`text-4xl font-black font-heading tracking-tighter ${isPaused ? 'text-tertiary animate-pulse' : 'text-on-surface'}`}>
           {countdown !== null ? '' : formatTime(elapsedSeconds)}
         </div>
       </div>
 
       {/* Hero SPM / Countdown */}
-      <div className="relative w-full max-w-sm aspect-square flex flex-col items-center justify-center mt-6">
+      <div className="relative w-full max-w-sm h-[220px] flex flex-col items-center justify-center mt-2">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className={`w-64 h-64 border-2 border-primary/20 rounded-full ${isRunning && !isPaused ? 'active-pulse' : ''}`} />
-          <div className="absolute w-80 h-80 border border-primary/10 rounded-full" />
+          <div className={`w-48 h-48 border-2 border-primary/20 rounded-full ${isRunning && !isPaused ? 'active-pulse' : ''}`} />
+          <div className="absolute w-64 h-64 border border-primary/10 rounded-full" />
         </div>
         <div className="z-10 flex flex-col items-center">
           {countdown !== null ? (
-            <span className="text-[180px] font-black font-heading leading-none text-primary glow-emerald tracking-tighter animate-pulse">
+            <span className="text-[110px] font-black font-heading leading-none text-primary glow-emerald tracking-tighter animate-pulse">
               {countdown}
             </span>
           ) : (
             <>
               <div className="flex items-start">
-                <span className="text-[140px] font-black font-heading leading-none text-primary glow-emerald tracking-tighter">
+                <span className="text-[100px] font-black font-heading leading-none text-primary glow-emerald tracking-tighter">
                   {displaySpm}
                 </span>
                 {isRunning && deviation !== 0 && (
@@ -100,7 +101,7 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
                 </span>
                 <Badge variant="outline" className="mt-4 bg-surface-container-low border-outline-variant/20 text-on-surface-variant rounded-full gap-2">
                   <Flag className="w-3 h-3" />
-                  Target: {targetBpm} SPM
+                  목표: {targetBpm} SPM
                 </Badge>
               </div>
             </>
@@ -109,20 +110,20 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-3 w-full mt-8">
+      <div className="grid grid-cols-3 gap-2 w-full mt-3">
         {[
-          { label: "Time", value: formatTime(elapsedSeconds) },
-          { label: "Distance", value: "—", unit: "KM" },
-          { label: "Avg Pace", value: "—", unit: "/KM" },
+          { label: "시간", value: formatTime(elapsedSeconds) },
+          { label: "목표", value: String(targetBpm), unit: "BPM" },
+          { label: "편차", value: isRunning ? `${deviation > 0 ? '+' : ''}${deviation}` : "0", unit: "SPM" },
         ].map((stat) => (
           <Card key={stat.label} className="bg-surface-container-low border-transparent">
-            <CardContent className="p-4 flex flex-col items-center">
-              <span className="text-xs font-heading font-bold text-on-surface-variant uppercase mb-1">
+            <CardContent className="p-3 flex flex-col items-center">
+              <span className="text-[10px] font-heading font-bold text-on-surface-variant uppercase mb-0.5">
                 {stat.label}
               </span>
-              <span className="text-xl font-black font-heading">
+              <span className="text-lg font-black font-heading">
                 {stat.value}
-                {stat.unit && <span className="text-xs ml-1 text-on-surface-variant">{stat.unit}</span>}
+                {stat.unit && <span className="text-[10px] ml-1 text-on-surface-variant">{stat.unit}</span>}
               </span>
             </CardContent>
           </Card>
@@ -130,27 +131,49 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
       </div>
 
       {/* Metronome Card */}
-      <Card className="w-full mt-6 bg-surface-container-high/60 backdrop-blur-xl border-transparent rounded-[2rem]">
-        <CardContent className="p-6 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Music className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-bold text-on-surface">Metronome</h3>
-              <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${metronomeOn ? 'bg-primary active-pulse' : 'bg-on-surface-variant/30'}`} />
-                <p className={`text-sm font-medium ${metronomeOn ? 'text-primary' : 'text-on-surface-variant'}`}>
-                  {metronomeOn ? `${targetBpm} BPM` : 'Off'}
+      <Card className="w-full mt-3 bg-surface-container-high/60 backdrop-blur-xl border-transparent rounded-2xl">
+        <CardContent className="p-3">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Music className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-on-surface">메트로놈</h3>
+                <p className={`text-xs font-medium ${metronomeOn ? 'text-primary' : 'text-on-surface-variant'}`}>
+                  {metronomeOn ? `${targetBpm} BPM` : '꺼짐'}
                 </p>
               </div>
             </div>
+            <Switch
+              checked={metronomeOn}
+              onCheckedChange={setMetronome}
+              className="data-[state=checked]:bg-primary"
+            />
           </div>
-          <Switch
-            checked={metronomeOn}
-            onCheckedChange={setMetronome}
-            className="data-[state=checked]:bg-primary"
-          />
+          {/* BPM 슬라이더 */}
+          <div className="flex items-center gap-2 mt-2">
+            <button
+              onClick={() => setTargetBpm(Math.max(BPM_MIN, targetBpm - 5))}
+              className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <Slider
+              value={[targetBpm]}
+              onValueChange={(v) => setTargetBpm(Array.isArray(v) ? v[0] : v)}
+              min={BPM_MIN}
+              max={BPM_MAX}
+              step={1}
+              className="flex-1"
+            />
+            <button
+              onClick={() => setTargetBpm(Math.min(BPM_MAX, targetBpm + 5))}
+              className="w-7 h-7 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant active:scale-90 transition-transform"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </CardContent>
       </Card>
 
@@ -159,28 +182,28 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
         <Button
           disabled
           size="lg"
-          className="w-full mt-10 bg-surface-container text-on-surface-variant font-black font-heading py-6 rounded-3xl text-xl tracking-widest uppercase h-auto opacity-60"
+          className="w-full mt-4 bg-surface-container text-on-surface-variant font-black font-heading py-4 rounded-2xl text-lg tracking-widest uppercase h-auto opacity-60"
         >
-          STARTING...
+          시작하는 중...
         </Button>
       ) : isPaused ? (
-        <div className="w-full mt-10 flex gap-3">
+        <div className="w-full mt-4 flex gap-3">
           <Button
             onClick={resumeWorkout}
             size="lg"
-            className="flex-1 bg-gradient-to-br from-primary to-primary-container text-on-primary font-black font-heading py-6 rounded-3xl text-xl tracking-widest uppercase shadow-lg shadow-primary/20 active:scale-[0.98] h-auto"
+            className="flex-1 bg-gradient-to-br from-primary to-primary-container text-on-primary font-black font-heading py-4 rounded-2xl text-lg tracking-widest uppercase shadow-lg shadow-primary/20 active:scale-[0.98] h-auto"
           >
             <RotateCcw className="w-6 h-6 mr-2" />
-            RESUME
+            이어하기
           </Button>
           <Button
             onClick={handleStop}
             variant="destructive"
             size="lg"
-            className="flex-1 bg-error-dim hover:bg-error text-white font-black font-heading py-6 rounded-3xl text-xl tracking-widest uppercase shadow-lg shadow-error/20 active:scale-[0.98] h-auto"
+            className="flex-1 bg-error-dim hover:bg-error text-white font-black font-heading py-4 rounded-2xl text-lg tracking-widest uppercase shadow-lg shadow-error/20 active:scale-[0.98] h-auto"
           >
             <StopCircle className="w-6 h-6 mr-2" />
-            END
+            종료
           </Button>
         </div>
       ) : isRunning ? (
@@ -188,19 +211,19 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
           onClick={handleStop}
           variant="destructive"
           size="lg"
-          className="w-full mt-10 bg-error-dim hover:bg-error text-white font-black font-heading py-6 rounded-3xl text-xl tracking-widest uppercase shadow-lg shadow-error/20 active:scale-[0.98] h-auto"
+          className="w-full mt-4 bg-error-dim hover:bg-error text-white font-black font-heading py-4 rounded-2xl text-lg tracking-widest uppercase shadow-lg shadow-error/20 active:scale-[0.98] h-auto"
         >
           <StopCircle className="w-6 h-6 mr-2" />
-          STOP RUN
+          러닝 중지
         </Button>
       ) : (
         <Button
           onClick={handleStart}
           size="lg"
-          className="w-full mt-10 bg-gradient-to-br from-primary to-primary-container text-on-primary font-black font-heading py-6 rounded-3xl text-xl tracking-widest uppercase shadow-lg shadow-primary/20 active:scale-[0.98] h-auto"
+          className="w-full mt-4 bg-gradient-to-br from-primary to-primary-container text-on-primary font-black font-heading py-4 rounded-2xl text-lg tracking-widest uppercase shadow-lg shadow-primary/20 active:scale-[0.98] h-auto"
         >
           <Play className="w-6 h-6 mr-2" />
-          START RUN
+          러닝 시작
         </Button>
       )}
     </div>
