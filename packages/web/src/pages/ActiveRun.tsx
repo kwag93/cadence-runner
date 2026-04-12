@@ -99,7 +99,7 @@ export function ActiveRun({ settings, onRunComplete }: ActiveRunProps) {
                 <span className="font-heading text-xl font-bold text-primary tracking-[0.2em] uppercase">
                   SPM
                 </span>
-                <Badge variant="outline" className="mt-4 bg-surface-container-low border-outline-variant/20 text-on-surface-variant rounded-full gap-2">
+                <Badge variant="outline" className="mt-2 bg-surface-container-low border-outline-variant/20 text-on-surface-variant rounded-full gap-2">
                   <Flag className="w-3 h-3" />
                   목표: {targetBpm} SPM
                 </Badge>
