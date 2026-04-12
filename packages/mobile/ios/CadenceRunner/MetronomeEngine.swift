@@ -75,6 +75,7 @@ import UIKit
         }
 
         startTime = Date()
+        tickCount = 0
         updateNowPlaying()
         playerNode.play()
         startTimer()
@@ -268,6 +269,8 @@ import UIKit
         startTimer() // startTimer가 내부에서 기존 timer를 cancel하므로 별도 stop 불필요
     }
 
+    private var tickCount: UInt = 0
+
     private func tick() {
         lock.lock()
         let playing = _isPlaying
@@ -281,6 +284,12 @@ import UIKit
             DispatchQueue.main.async { [weak self] in
                 self?.hapticGenerator?.impactOccurred()
             }
+        }
+
+        // Now Playing 주기적 갱신 (~10초마다)
+        tickCount += 1
+        if tickCount % max(1, UInt(_bpm / 6)) == 0 {
+            updateNowPlaying()
         }
     }
 

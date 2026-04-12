@@ -10,6 +10,7 @@ import UIKit
     private let lock = NSLock()
 
     private var _currentSpm: Double = 0
+    private var mockTimer: Timer?
 
     @objc var currentSpm: Double {
         lock.lock()
@@ -23,17 +24,33 @@ import UIKit
 
     @objc func start() {
         guard !_isRunning else { return }
-        guard CMPedometer.isStepCountingAvailable() else {
-            print("[CadenceEngine] Step counting not available")
-            return
-        }
-
         _isRunning = true
 
         // 운동 중 화면 꺼짐 방지
         DispatchQueue.main.async {
             UIApplication.shared.isIdleTimerDisabled = true
         }
+
+        #if targetEnvironment(simulator)
+        // 시뮬레이터: mock SPM 데이터 (150-190 범위에서 랜덤 변동)
+        print("[CadenceEngine] Simulator detected — using mock SPM data")
+        DispatchQueue.main.async { [weak self] in
+            self?.mockTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+                let base = 170.0
+                let noise = Double.random(in: -20...20)
+                self?.lock.lock()
+                self?._currentSpm = base + noise
+                self?.lock.unlock()
+            }
+        }
+        #else
+        // 실기기: CMPedometer 실제 데이터
+        guard CMPedometer.isStepCountingAvailable() else {
+            print("[CadenceEngine] Step counting not available on this device")
+            _isRunning = false
+            return
+        }
+
         lastStepCount = 0
         lastTimestamp = Date()
 
@@ -57,12 +74,25 @@ import UIKit
             self._currentSpm = spm
             self.lock.unlock()
         }
+        #endif
     }
 
     @objc func stop() {
         guard _isRunning else { return }
         _isRunning = false
+
+        #if targetEnvironment(simulator)
+        DispatchQueue.main.async { [weak self] in
+            self?.mockTimer?.invalidate()
+            self?.mockTimer = nil
+        }
+        #else
         pedometer.stopUpdates()
+        #endif
+
+        lock.lock()
+        _currentSpm = 0
+        lock.unlock()
 
         // 화면 꺼짐 방지 해제
         DispatchQueue.main.async {

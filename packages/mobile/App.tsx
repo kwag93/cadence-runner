@@ -13,9 +13,9 @@ import NativeVoiceAlert from './specs/NativeVoiceAlert';
 const SURFACE_BG = '#070d1f';
 
 // 개발: Vite dev server, 프로덕션: 번들된 HTML
-// 실기기 테스트 시 localhost를 Mac LAN IP로 변경 (예: '192.168.0.5')
+// 실기기 테스트 시 Mac LAN IP 사용, 시뮬레이터는 localhost
 const DEV_SERVER_HOST = Platform.select({
-  ios: 'localhost',
+  ios: '192.168.0.5', // Mac LAN IP — 실기기에서 접근 가능
   android: '10.0.2.2',
 })!;
 const DEV_PORT = 5173;
