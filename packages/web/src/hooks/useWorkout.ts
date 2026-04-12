@@ -135,6 +135,7 @@ export function useWorkout({ settings }: UseWorkoutOptions) {
     });
     postToNative({ type: 'set_target_bpm', value: bpm });
     postToNative({ type: 'set_haptic', enabled: settingsRef.current.hapticEnabled });
+    postToNative({ type: 'set_sound_type', value: settingsRef.current.soundType });
     postToNative({ type: 'start_workout' });
     postToNative({ type: 'start_metronome' });
   }, []);

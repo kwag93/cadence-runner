@@ -151,23 +151,88 @@ import UIKit
         }
     }
 
+    // MARK: - Sound Type
+
+    private var _soundType: String = "Click"
+
+    @objc func setSoundType(_ type: String) {
+        lock.lock()
+        _soundType = type
+        lock.unlock()
+        generateClickBuffer()
+    }
+
     // MARK: - Click buffer
 
     private func generateClickBuffer() {
-        let clickDuration: Double = 0.015
-        let frameCount = AVAudioFrameCount(sampleRate * clickDuration)
+        lock.lock()
+        let soundType = _soundType
+        lock.unlock()
+
+        switch soundType {
+        case "Woodblock":
+            generateWoodblockBuffer()
+        case "Digital":
+            generateDigitalBuffer()
+        default:
+            generateStandardClickBuffer()
+        }
+    }
+
+    /// Click: 1kHz sine + fast decay — 날카로운 클릭
+    private func generateStandardClickBuffer() {
+        let duration: Double = 0.015
+        let frameCount = AVAudioFrameCount(sampleRate * duration)
         guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return }
         buffer.frameLength = frameCount
 
         let data = buffer.floatChannelData![0]
         let freq: Float = 1000.0
-
         for i in 0..<Int(frameCount) {
             let t = Float(i) / Float(sampleRate)
             let envelope = expf(-t * 300)
             data[i] = sinf(2.0 * .pi * freq * t) * envelope * 0.7
         }
+        clickBuffer = buffer
+    }
 
+    /// Woodblock: 800Hz + 2nd harmonic + longer decay — 나무 블록
+    private func generateWoodblockBuffer() {
+        let duration: Double = 0.04
+        let frameCount = AVAudioFrameCount(sampleRate * duration)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return }
+        buffer.frameLength = frameCount
+
+        let data = buffer.floatChannelData![0]
+        let freq1: Float = 800.0
+        let freq2: Float = 1400.0
+        for i in 0..<Int(frameCount) {
+            let t = Float(i) / Float(sampleRate)
+            let envelope = expf(-t * 120)
+            let wave = sinf(2.0 * .pi * freq1 * t) * 0.6 + sinf(2.0 * .pi * freq2 * t) * 0.3
+            data[i] = wave * envelope * 0.7
+        }
+        clickBuffer = buffer
+    }
+
+    /// Digital: 880Hz + 1320Hz mix + very short decay — 전자 비프
+    private func generateDigitalBuffer() {
+        let duration: Double = 0.025
+        let frameCount = AVAudioFrameCount(sampleRate * duration)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return }
+        buffer.frameLength = frameCount
+
+        let data = buffer.floatChannelData![0]
+        let freq1: Float = 880.0
+        let freq2: Float = 1320.0
+        for i in 0..<Int(frameCount) {
+            let t = Float(i) / Float(sampleRate)
+            // 사각파에 가까운 클리핑으로 디지털 느낌
+            let raw = sinf(2.0 * .pi * freq1 * t) * 0.5 + sinf(2.0 * .pi * freq2 * t) * 0.4
+            let clipped = max(-0.7, min(0.7, raw * 1.5))
+            let envelope = expf(-t * 200)
+            data[i] = clipped * envelope
+        }
         clickBuffer = buffer
     }
 

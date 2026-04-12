@@ -38,6 +38,10 @@
     [engine setHapticEnabled:enabled];
 }
 
+- (void)setSoundType:(NSString *)type {
+    [engine setSoundType:type];
+}
+
 - (NSNumber *)isPlaying {
     return @([engine isPlaying]);
 }

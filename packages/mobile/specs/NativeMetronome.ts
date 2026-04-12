@@ -6,6 +6,7 @@ export interface Spec extends TurboModule {
   stop(): void;
   setBpm(bpm: number): void;
   setHapticEnabled(enabled: boolean): void;
+  setSoundType(type: string): void;
   isPlaying(): boolean;
 }
 

@@ -13,6 +13,7 @@ import NativeVoiceAlert from './specs/NativeVoiceAlert';
 const SURFACE_BG = '#070d1f';
 
 // 개발: Vite dev server, 프로덕션: 번들된 HTML
+// 실기기 테스트 시 localhost를 Mac LAN IP로 변경 (예: '192.168.0.5')
 const DEV_SERVER_HOST = Platform.select({
   ios: 'localhost',
   android: '10.0.2.2',
@@ -116,6 +117,12 @@ function AppContent() {
           NativeMetronome.setHapticEnabled(msg.enabled);
         }
         console.log('[Bridge] set_haptic:', msg.enabled);
+        break;
+      case 'set_sound_type':
+        if (typeof msg.value === 'string') {
+          NativeMetronome.setSoundType(msg.value);
+        }
+        console.log('[Bridge] set_sound_type:', msg.value);
         break;
       default:
         console.warn('[Bridge] unknown message type:', (msg as {type: string}).type);

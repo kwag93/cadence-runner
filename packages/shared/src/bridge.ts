@@ -15,7 +15,8 @@ export type WebMessage =
   | { type: 'start_metronome' }
   | { type: 'stop_metronome' }
   | { type: 'speak'; text: string }
-  | { type: 'set_haptic'; enabled: boolean };
+  | { type: 'set_haptic'; enabled: boolean }
+  | { type: 'set_sound_type'; value: string };
 
 export type BridgeError = {
   type: 'error';
